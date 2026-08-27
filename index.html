@@ -1,358 +1,367 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Eiken Pre-1st Exam Master</title>
-    <style>
-        :root {
-            --primary: #1e40af;
-            --success: #16a34a;
-            --danger: #dc2626;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --text: #0f172a;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>英検S-CBTスタイル | 準1級総合対策</title>
+  <style>
+    :root {
+      --primary-color: #00875A;
+      --danger-color: #D32F2F;
+      --bg-color: #F4F5F7;
+      --card-bg: #FFFFFF;
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            line-height: 1.5;
-            user-select: none;
-        }
+    body {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
 
-        header {
-            background: var(--primary);
-            color: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
 
-        .container { max-width: 700px; margin: 0 auto; padding: 15px; }
+    .header {
+      background: var(--card-bg);
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-        .view { display: none; }
-        .view.active { display: block; animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .api-key-input {
+      padding: 8px;
+      width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
 
-        /* Menu UI */
-        .category-group { margin-bottom: 25px; }
-        .category-title { font-weight: bold; font-size: 0.9rem; color: #64748b; margin-bottom: 10px; border-left: 4px solid var(--primary); padding-left: 10px; }
-        
-        .menu-card {
-            background: var(--card);
-            padding: 18px;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .menu-card:active { transform: scale(0.98); background: #f1f5f9; }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
 
-        .progress-bar-bg { height: 6px; background: #e2e8f0; border-radius: 3px; margin-top: 10px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.6s ease; }
+    .card {
+      background: var(--card-bg);
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-top: 4px solid var(--primary-color);
+    }
 
-        /* Quiz UI */
-        .passage { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 1.05rem; white-space: pre-wrap; border-left: 4px solid #cbd5e1; }
-        .question-text { font-weight: bold; font-size: 1.15rem; margin-bottom: 20px; color: #1e293b; }
-        .option-btn {
-            width: 100%; text-align: left; padding: 16px; margin-bottom: 10px;
-            border: 2px solid #e2e8f0; border-radius: 10px; background: white;
-            font-size: 1rem; cursor: pointer;
-        }
+    .btn {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 10px;
+    }
 
-        /* ◯✕ Overlay */
-        #feedback-overlay {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 180px; font-weight: bold; z-index: 2000; pointer-events: none; display: none;
-        }
+    .btn:hover { opacity: 0.9; }
 
-        /* Buttons */
-        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-home { background: rgba(255,255,255,0.2); color: white; }
-        .btn-reset { background: #fef2f2; color: var(--danger); border: 1px solid #fee2e2; width: 100%; margin-top: 20px; }
-        .btn-audio { background: #7c3aed; color: white; width: 100%; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-secondary {
+      background-color: #0066CC;
+      margin-top: 0;
+    }
 
-        .explanation { margin-top: 20px; padding: 15px; background: #f0fdf4; border-radius: 10px; border: 1px solid #dcfce7; }
-        .hidden-script { filter: blur(5px); pointer-events: none; }
-    </style>
+    .test-area, .result-area {
+      background: var(--card-bg);
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      margin-top: 20px;
+    }
+
+    .topic-box {
+      background: #EBF3FB;
+      border-left: 5px solid #0066CC;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 4px;
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    textarea {
+      width: 100%;
+      height: 140px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      margin-top: 10px;
+      font-size: 1rem;
+    }
+
+    .score-badge {
+      display: inline-block;
+      background: var(--primary-color);
+      color: white;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .hidden { display: none; }
+    .loading { color: #0066CC; font-style: italic; font-weight: bold; }
+    .box { background: #f9f9f9; padding: 15px; border-left: 4px solid var(--primary-color); margin-top: 10px; }
+  </style>
 </head>
-<body onclick="wakeSpeechEngine()">
-
-<header>
-    <div style="font-size: 1.1rem; font-weight: 900;">Eiken Pre-1st Master</div>
-    <button class="btn btn-home" onclick="showView('home-view')">🏠 MENU</button>
-</header>
-
-<div id="feedback-overlay"></div>
+<body>
 
 <div class="container">
+  <div class="header">
+    <h2>英検S-CBTスタイル | 準1級総合対策</h2>
+    <div>
+      <input type="password" id="apiKey" class="api-key-input" placeholder="Gemini API Keyを入力">
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>意見論述</h3>
+      <p>エッセイ添削（16点満点）</p>
+      <button class="btn" onclick="selectMode('writing_opinion')">スタート</button>
+    </div>
+    <div class="card">
+      <h3>要約問題</h3>
+      <p>新形式要約（60-70語）</p>
+      <button class="btn" onclick="selectMode('writing_summary')">スタート</button>
+    </div>
+    <div class="card">
+      <h3>長文構文解析</h3>
+      <p>SVOC構造分解と解説</p>
+      <button class="btn" onclick="selectMode('reading')">スタート</button>
+    </div>
+    <div class="card">
+      <h3>リスニング解説</h3>
+      <p>音変化とスクリプト分析</p>
+      <button class="btn" onclick="selectMode('listening')">スタート</button>
+    </div>
+    <div class="card">
+      <h3>面接ナレーション</h3>
+      <p>4コマナレーション添削</p>
+      <button class="btn" onclick="selectMode('speaking_narration')">スタート</button>
+    </div>
+    <div class="card">
+      <h3>面接質疑応答</h3>
+      <p>No.2〜4 質疑応答トレーニング</p>
+      <button class="btn" onclick="selectMode('speaking_qa')">スタート</button>
+    </div>
+  </div>
+
+  <div id="testArea" class="test-area hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3 id="modeTitle" style="margin:0;">テスト</h3>
+      <button class="btn btn-secondary" style="width:auto; padding:8px 15px;" onclick="generateNewQuestion()">🔄 別の問題に更新する</button>
+    </div>
     
-    <!-- 総合メニュー -->
-    <section id="home-view" class="view active">
-        <h2 style="margin-top:0;">試験対策メニュー</h2>
-        
-        <div id="menu-container">
-            <!-- JSで動的に構築 -->
-        </div>
+    <div class="topic-box">
+      <strong>【今回のお題 / 問題文】</strong><br>
+      <span id="topicLoading" class="loading hidden">新しい問題を生成中...</span>
+      <div id="topicText">問題を取得中...</div>
+    </div>
 
-        <button class="btn btn-reset" onclick="resetAllProgress()">🔄 学習記録をリセット</button>
+    <textarea id="userInput" placeholder="ここにあなたの回答または英文を入力してください..."></textarea>
+    <button class="btn" onclick="submitToGemini()" style="margin-top:15px; font-size:1.1rem; padding:12px;">送信して判定・採点結果を表示</button>
+  </div>
 
-        <div style="margin-top:30px; border-top: 1px solid #e2e8f0; padding-top:20px;">
-            <p style="font-size:0.8rem; color:#64748b;">3カ国語辞書ツール</p>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="dict-q" placeholder="Look up a word..." style="flex:1; padding:10px; border-radius:8px; border:1px solid #cbd5e1;">
-                <button class="btn" style="background:var(--primary); color:white;" onclick="searchWord()">Search</button>
-            </div>
-            <div id="dict-res" style="margin-top:10px; font-size:0.9rem;"></div>
-        </div>
-    </section>
-
-    <!-- クイズ画面 -->
-    <section id="quiz-view" class="view">
-        <div style="background:white; padding:20px; border-radius:15px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
-            <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:0.9rem; color:#64748b;">
-                <span id="quiz-category-label">リーディング第1部</span>
-                <span id="quiz-progress-label">1 / 25</span>
-            </div>
-
-            <div id="audio-ui" style="display:none;">
-                <button class="btn btn-audio" onclick="playCurrentText()">🔊 音声を聴く</button>
-                <div id="listening-script" class="passage hidden-script" style="font-size:0.9rem; margin-top:10px;"></div>
-                <button onclick="revealScript()" style="color:var(--primary); border:none; background:none; text-decoration:underline; font-size:0.8rem; cursor:pointer;">スクリプトを表示</button>
-            </div>
-
-            <div id="passage-ui" class="passage" style="display:none;"></div>
-            <div id="question-text" class="question-text"></div>
-            <div id="options-container"></div>
-
-            <div id="explanation-ui" class="explanation" style="display:none;">
-                <div id="explanation-content" style="margin-bottom:15px;"></div>
-                <button class="btn" style="background:var(--primary); color:white; width:100%;" onclick="loadNextQuestion()">次の問題へ</button>
-            </div>
-        </div>
-    </section>
+  <div id="resultArea" class="result-area hidden">
+    <h3>採点・分析結果</h3>
+    <div id="loadingText" class="loading hidden">AI分析中... お待ちください。</div>
+    <div id="resultContent"></div>
+  </div>
 </div>
 
 <script>
-    /**
-     * 【試験基準】問題データ構造
-     * 準1級の構成を模したサンプルデータ
-     */
-    const EIKEN_PRE1_QUESTIONS = [
-        // リーディング1部 (語彙) - 目標25問
-        { id: 1, category: 'reading1', part: '第1部', type: 'text', 
-          text: "The professor's lecture was so (  ) that most of the students struggled to follow his complex arguments.",
-          options: ["abstruse", "superficial", "lenient", "explicit"],
-          answer: 0, explanation: "abstruse: 難解な、深奥な。complex arguments(複雑な議論)を理解するのが大変だったという文脈に合致。" },
-        
-        { id: 2, category: 'reading1', part: '第1部', type: 'text', 
-          text: "After the long drought, the farmers were relieved to see the (  ) harvest this year.",
-          options: ["bountiful", "sparse", "meager", "stagnant"],
-          answer: 0, explanation: "bountiful: 豊富な、豊かな。干ばつの後の「安堵」という文脈から、収穫が多かったと推測します。" },
+  let currentMode = '';
+  let currentPromptText = '';
 
-        // リーディング2・3部 (長文) - 目標16問
-        { id: 101, category: 'reading2', part: '第2・3部', type: 'passage',
-          passage: "The concept of 'nudge theory' suggests that positive reinforcement and indirect suggestions can influence the behavior and decision-making of groups or individuals. Unlike direct regulation, a nudge makes it more likely that an individual will make a particular choice by altering the environment in which the decision is made.",
-          text: "What is a characteristic of 'nudge theory' according to the passage?",
-          options: ["It relies on strict legal enforcement.", "It avoids direct mandates to change behavior.", "It is only effective on small children.", "It forces individuals to make a specific choice."],
-          answer: 1, explanation: "第2文「Unlike direct regulation(直接的な規制とは異なり)」より、強制ではなく環境を変えることで選択を促す手法であることがわかります。" },
+  async function selectMode(mode) {
+    currentMode = mode;
+    document.getElementById('testArea').classList.remove('hidden');
+    document.getElementById('resultArea').classList.add('hidden');
+    document.getElementById('userInput').value = '';
+    document.getElementById('resultContent').innerHTML = '';
 
-        // リスニング (第1・2部) - 目標24問
-        { id: 201, category: 'listening', part: 'リスニング', type: 'listening',
-          text: "W: Excuse me, I'm looking for the photography exhibition.\nM: It's on the third floor, but the elevator is currently undergoing maintenance. You'll need to take the stairs at the end of the hallway.\nW: Oh, I see. My knee has been acting up lately, so that might be difficult.\nM: In that case, I can call a staff member to assist you with the service elevator.",
-          question: "What will the man probably do next?",
-          options: ["Repair the elevator.", "Lead the woman to the stairs.", "Arrange for the service elevator.", "Cancel the exhibition."],
-          answer: 2, explanation: "「call a staff member to assist you with the service elevator」という最後の発話から判断します。" }
-    ];
+    const titles = {
+      'writing_opinion': 'ライティング: 意見論述添削',
+      'writing_summary': 'ライティング: 要約問題添削',
+      'reading': 'リーディング: 構文解釈',
+      'listening': 'リスニング: スクリプト・音変化解説',
+      'speaking_narration': 'スピーキング: No.1 ナレーション添削',
+      'speaking_qa': 'スピーキング: No.2〜4 質疑応答'
+    };
+    document.getElementById('modeTitle').innerText = titles[mode];
 
-    let appState = {
-        currentView: 'home-view',
-        activeQuestions: [],
-        index: 0,
-        audioInitialized: false,
-        voices: []
+    await generateNewQuestion();
+  }
+
+  async function generateNewQuestion() {
+    const apiKey = document.getElementById('apiKey').value;
+    if (!apiKey) {
+      alert('最初に右上へ Gemini API Key を入力してください。');
+      return;
+    }
+
+    const topicTextEl = document.getElementById('topicText');
+    const loadingEl = document.getElementById('topicLoading');
+    
+    topicTextEl.innerText = '';
+    loadingEl.classList.remove('hidden');
+
+    const prompts = {
+      'writing_opinion': '英検準1級ライティング（意見論述）の新しいTOPIC（お題）を1つ英作文の形式で生成してください。形式例: "Agree or disagree: High schools should introduce financial education for all students." のように、問題文だけを出力してください。',
+      'writing_summary': '英検準1級ライティング（要約問題）の素材となる、約120〜150語のアカデミックな英文（社会・科学・環境問題等）を1つ生成してください。英文テキストのみを出力してください。',
+      'reading': '英検準1級レベル（CEFR B2）のやや複雑で長めの英文（1文）を1つ作成してください。英文のみを出力してください。',
+      'listening': '英検準1級リスニング（Part 1相当）の短い会話文スクリプト（男女2言ずつ）と設問、および選択肢（1〜4）を生成してください。',
+      'speaking_narration': '英検準1級二次試験No.1の4コマ漫画の状況設定テキスト（例: "One day, a man was thinking about..."から始まる導入文と各コマの状況説明）を英語で簡潔に生成してください。',
+      'speaking_qa': '英検準1級二次試験No.2〜4相当の面接質問文（例: "Do you think companies should allow employees to work from home?"）を1つ生成してください。'
     };
 
-    // --- Core Logic ---
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompts[currentMode] }] }]
+        })
+      });
 
-    function wakeSpeechEngine() {
-        if (appState.audioInitialized) return;
-        const uttr = new SpeechSynthesisUtterance("");
-        window.speechSynthesis.speak(uttr);
-        appState.audioInitialized = true;
+      const data = await response.json();
+      currentPromptText = data.candidates[0].content.parts[0].text.trim();
+      topicTextEl.innerText = currentPromptText;
+
+    } catch (error) {
+      topicTextEl.innerText = '問題の生成に失敗しました。API Keyをご確認ください。';
+    } finally {
+      loadingEl.classList.add('hidden');
+    }
+  }
+
+  async function submitToGemini() {
+    const apiKey = document.getElementById('apiKey').value;
+    if (!apiKey) {
+      alert('Gemini API Keyを入力してください。');
+      return;
     }
 
-    function showView(viewId) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById(viewId).classList.add('active');
-        if (viewId === 'home-view') renderMenu();
-        window.speechSynthesis.cancel();
+    const userInput = document.getElementById('userInput').value;
+    if (!userInput) {
+      alert('回答を入力してください。');
+      return;
     }
 
-    function getProgress() {
-        return JSON.parse(localStorage.getItem('eiken_pro_data')) || {};
+    document.getElementById('resultArea').classList.remove('hidden');
+    document.getElementById('loadingText').classList.remove('hidden');
+    document.getElementById('resultContent').innerHTML = '';
+
+    const requestData = {
+      mode: currentMode,
+      topic: currentPromptText,
+      user_essay: userInput,
+      original_passage: currentPromptText,
+      user_summary: userInput,
+      target_sentence: currentPromptText,
+      user_answer: userInput,
+      user_speech_text: userInput,
+      question_text: currentPromptText,
+      user_answer_text: userInput
+    };
+
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: JSON.stringify(requestData) }] }]
+        })
+      });
+
+      const data = await response.json();
+      const rawText = data.candidates[0].content.parts[0].text;
+      
+      const cleanedJsonText = rawText.replace(/```json|```/g, '').trim();
+      const resultJson = JSON.parse(cleanedJsonText);
+
+      renderResult(resultJson);
+
+    } catch (error) {
+      document.getElementById('resultContent').innerHTML = `<p style="color:red;">エラーが発生しました: ${error.message}</p>`;
+    } finally {
+      document.getElementById('loadingText').classList.add('hidden');
     }
+  }
 
-    function saveProgress(qId, isCorrect) {
-        let data = getProgress();
-        data[qId] = isCorrect ? 1 : -1; // 1:正解, -1:不正解
-        localStorage.setItem('eiken_pro_data', JSON.stringify(data));
+  function renderResult(json) {
+    const container = document.getElementById('resultContent');
+    
+    if (json.mode === 'writing_opinion' || json.mode === 'writing_summary') {
+      let wordCheck = json.word_count_check ? `<p><strong>語数チェック:</strong> ${json.word_count_check.user_words}語 (${json.word_count_check.status})</p>` : '';
+      container.innerHTML = `
+        <div>
+          <span class="score-badge">総合スコア: ${json.total_score} / 16点</span>
+          <span style="margin-left:10px; font-weight:bold;">判定: ${json.band}</span>
+        </div>
+        ${wordCheck}
+        <h4 style="margin-top:20px;">観点別評価</h4>
+        <ul>
+          <li><strong>内容:</strong> ${json.evaluation_criteria.content.score}/4点 - ${json.evaluation_criteria.content.reason}</li>
+          <li><strong>構成:</strong> ${json.evaluation_criteria.structure.score}/4点 - ${json.evaluation_criteria.structure.reason}</li>
+          <li><strong>語彙:</strong> ${json.evaluation_criteria.vocabulary.score}/4点 - ${json.evaluation_criteria.vocabulary.reason}</li>
+          <li><strong>文法:</strong> ${json.evaluation_criteria.grammar.score}/4点 - ${json.evaluation_criteria.grammar.reason}</li>
+        </ul>
+        <h4>模範解答例</h4>
+        <div class="box">${json.model_answer}</div>
+      `;
+    } 
+    else if (json.mode === 'reading') {
+      container.innerHTML = `
+        <h4>自然な和訳</h4>
+        <p>${json.natural_translation}</p>
+        <h4>構文・構造解説</h4>
+        <p><code>${json.syntax_analysis.structure_breakdown}</code></p>
+        <p>${json.syntax_analysis.explanation}</p>
+      `;
+    } 
+    else if (json.mode === 'listening') {
+      container.innerHTML = `
+        <h4>正誤判定</h4>
+        <p>${json.is_correct ? '⭕️ 正解' : '❌ 不正解'}（正解: ${json.correct_answer}）</p>
+        <h4>スクリプトと対訳</h4>
+        <div class="box">
+          <p><strong>[英語]</strong><br>${json.script.english.replace(/\n/g, '<br>')}</p>
+          <p><strong>[日本語]</strong><br>${json.script.japanese.replace(/\n/g, '<br>')}</p>
+        </div>
+        <h4>音変化（リスニングのポイント）</h4>
+        <p><strong>フレーズ:</strong> ${json.audio_tips.phrase}</p>
+        <p>${json.audio_tips.explanation}</p>
+      `;
+    } 
+    else if (json.mode === 'speaking_narration' || json.mode === 'speaking_qa') {
+      container.innerHTML = `
+        <h4>評価判定</h4>
+        <p><span class="score-badge">${json.judgment}</span></p>
+        <h4>模範解答例</h4>
+        <div class="box">${json.model_narration || json.model_answer}</div>
+      `;
     }
-
-    function resetAllProgress() {
-        if (confirm("これまでの学習記録をすべてリセットしますか？")) {
-            localStorage.removeItem('eiken_pro_data');
-            renderMenu();
-        }
-    }
-
-    function renderMenu() {
-        const container = document.getElementById('menu-container');
-        const prog = getProgress();
-        const groups = [
-            { id: 'reading1', name: 'リーディング第1部', desc: '短文空欄補充 (語彙・熟語)', total: 25 },
-            { id: 'reading2', name: 'リーディング第2・3部', desc: '長文読解 (内容一致)', total: 16 },
-            { id: 'listening', name: 'リスニング第1・2部', desc: '聴解問題 (音声主導)', total: 24 }
-        ];
-
-        container.innerHTML = groups.map(g => {
-            const groupQuestions = EIKEN_PRE1_QUESTIONS.filter(q => q.category === g.id);
-            const answeredIds = groupQuestions.filter(q => prog[q.id]);
-            const correctCount = answeredIds.filter(q => prog[q.id] === 1).length;
-            const progressPercent = groupQuestions.length === 0 ? 0 : Math.round((answeredIds.length / groupQuestions.length) * 100);
-
-            return `
-                <div class="category-group">
-                    <div class="category-title">${g.name}</div>
-                    <div class="menu-card" onclick="startQuiz('${g.id}')">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <div style="font-weight:bold;">${g.desc}</div>
-                                <div style="font-size:0.8rem; color:#64748b;">正解: ${correctCount} / 収録: ${groupQuestions.length}問</div>
-                            </div>
-                            <div style="font-weight:bold; color:var(--primary);">${progressPercent}%</div>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width:${progressPercent}%"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    function startQuiz(catId) {
-        appState.activeQuestions = EIKEN_PRE1_QUESTIONS.filter(q => q.category === catId);
-        if (appState.activeQuestions.length === 0) return alert("Coming Soon!");
-        appState.index = 0;
-        showView('quiz-view');
-        renderQuestion();
-    }
-
-    function renderQuestion() {
-        const q = appState.activeQuestions[appState.index];
-        const optContainer = document.getElementById('options-container');
-        const expUi = document.getElementById('explanation-ui');
-        
-        // Reset UI
-        expUi.style.display = 'none';
-        document.getElementById('audio-ui').style.display = q.type === 'listening' ? 'block' : 'none';
-        document.getElementById('passage-ui').style.display = q.type === 'passage' ? 'block' : 'none';
-        document.getElementById('listening-script').classList.add('hidden-script');
-        
-        document.getElementById('quiz-category-label').innerText = q.part;
-        document.getElementById('quiz-progress-label').innerText = `${appState.index + 1} / ${appState.activeQuestions.length}`;
-        
-        if (q.type === 'passage') document.getElementById('passage-ui').innerText = q.passage;
-        if (q.type === 'listening') document.getElementById('listening-script').innerText = q.text;
-
-        document.getElementById('question-text').innerText = q.type === 'listening' ? q.question : q.text;
-
-        optContainer.innerHTML = '';
-        q.options.forEach((opt, i) => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerText = `${i + 1}. ${opt}`;
-            btn.onclick = () => checkAnswer(i, btn);
-            optContainer.appendChild(btn);
-        });
-    }
-
-    function checkAnswer(idx, btn) {
-        const q = appState.activeQuestions[appState.index];
-        const isCorrect = (idx === q.answer);
-        const overlay = document.getElementById('feedback-overlay');
-
-        // ◯✕演出
-        overlay.innerText = isCorrect ? '○' : '×';
-        overlay.style.color = isCorrect ? 'var(--success)' : 'var(--danger)';
-        overlay.style.display = 'block';
-        setTimeout(() => overlay.style.display = 'none', 600);
-
-        saveProgress(q.id, isCorrect);
-
-        // UI Update
-        document.querySelectorAll('.option-btn').forEach((b, i) => {
-            b.disabled = true;
-            if (i === q.answer) b.style.borderColor = 'var(--success)';
-            if (i === idx && !isCorrect) b.style.borderColor = 'var(--danger)';
-        });
-
-        document.getElementById('explanation-ui').style.display = 'block';
-        document.getElementById('explanation-content').innerHTML = `<strong>正解: ${q.options[q.answer]}</strong><br><small>${q.explanation}</small>`;
-    }
-
-    function loadNextQuestion() {
-        appState.index++;
-        if (appState.index < appState.activeQuestions.length) {
-            renderQuestion();
-        } else {
-            alert("このセクションを完了しました。");
-            showView('home-view');
-        }
-    }
-
-    function playCurrentText() {
-        window.speechSynthesis.cancel();
-        const q = appState.activeQuestions[appState.index];
-        const uttr = new SpeechSynthesisUtterance(q.text);
-        uttr.lang = 'en-US';
-        uttr.rate = 0.9;
-        window.speechSynthesis.speak(uttr);
-    }
-
-    function revealScript() {
-        document.getElementById('listening-script').classList.remove('hidden-script');
-    }
-
-    async function searchWord() {
-        const q = document.getElementById('dict-q').value;
-        const res = document.getElementById('dict-res');
-        if (!q) return;
-        res.innerText = "Searching...";
-        try {
-            const r = await fetch(`https://api.excelapi.org/translate/en-ja?text=${encodeURIComponent(q)}`);
-            const t = await r.text();
-            res.innerHTML = `<strong>${q}:</strong> ${t}`;
-        } catch (e) { res.innerText = "Error searching dictionary."; }
-    }
-
-    // Init
-    window.addEventListener('load', () => {
-        renderMenu();
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.getVoices();
-        }
-    });
+  }
 </script>
 
 </body>
