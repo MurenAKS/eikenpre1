@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Eiken Pre-1st Master Pro</title>
+    <title>Eiken Pre-1st Exam Master</title>
     <style>
         :root {
-            --primary: #2563eb;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --bg: #f1f5f9;
+            --primary: #1e40af;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --bg: #f8fafc;
             --card: #ffffff;
-            --text: #1e293b;
+            --text: #0f172a;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
+            line-height: 1.5;
             user-select: none;
         }
 
-        /* Header */
         header {
             background: var(--primary);
             color: white;
@@ -30,119 +30,66 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
-        .home-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+        .container { max-width: 700px; margin: 0 auto; padding: 15px; }
 
         .view { display: none; }
-        .view.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .view.active { display: block; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Menu Cards with Progress */
+        /* Menu UI */
+        .category-group { margin-bottom: 25px; }
+        .category-title { font-weight: bold; font-size: 0.9rem; color: #64748b; margin-bottom: 10px; border-left: 4px solid var(--primary); padding-left: 10px; }
+        
         .menu-card {
             background: var(--card);
-            padding: 20px;
+            padding: 18px;
             border-radius: 12px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             cursor: pointer;
-            position: relative;
-            border: 2px solid transparent;
+            transition: 0.2s;
         }
-        .menu-card:active { background: #f8fafc; }
-        .progress-container {
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            margin-top: 10px;
-            overflow: hidden;
-        }
-        .progress-bar {
-            height: 100%;
-            background: var(--success);
-            width: 0%;
-            transition: width 0.5s;
-        }
-        .score-badge {
-            font-size: 0.8rem;
-            color: var(--primary);
-            font-weight: bold;
-        }
+        .menu-card:active { transform: scale(0.98); background: #f1f5f9; }
+
+        .progress-bar-bg { height: 6px; background: #e2e8f0; border-radius: 3px; margin-top: 10px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.6s ease; }
 
         /* Quiz UI */
-        .quiz-box { background: white; padding: 20px; border-radius: 15px; }
+        .passage { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 1.05rem; white-space: pre-wrap; border-left: 4px solid #cbd5e1; }
+        .question-text { font-weight: bold; font-size: 1.15rem; margin-bottom: 20px; color: #1e293b; }
         .option-btn {
-            width: 100%;
-            text-align: left;
-            padding: 15px;
-            margin-bottom: 10px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            background: white;
-            font-size: 1rem;
+            width: 100%; text-align: left; padding: 16px; margin-bottom: 10px;
+            border: 2px solid #e2e8f0; border-radius: 10px; background: white;
+            font-size: 1rem; cursor: pointer;
         }
-        
+
         /* ◯✕ Overlay */
         #feedback-overlay {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 150px;
-            font-weight: bold;
-            z-index: 1000;
-            pointer-events: none;
-            display: none;
-        }
-        .feedback-correct { color: var(--success); opacity: 0.8; }
-        .feedback-wrong { color: var(--danger); opacity: 0.8; }
-
-        /* Audio Controls */
-        .audio-btn {
-            background: #8b5cf6;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            width: 100%;
-            margin-bottom: 15px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 180px; font-weight: bold; z-index: 2000; pointer-events: none; display: none;
         }
 
-        .hidden-text { filter: blur(6px); transition: 0.3s; background: #eee; }
-        .hidden-text.reveal { filter: blur(0); background: transparent; }
+        /* Buttons */
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-home { background: rgba(255,255,255,0.2); color: white; }
+        .btn-reset { background: #fef2f2; color: var(--danger); border: 1px solid #fee2e2; width: 100%; margin-top: 20px; }
+        .btn-audio { background: #7c3aed; color: white; width: 100%; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-        /* Dict Tool */
-        .dict-area { margin-top: 20px; border-top: 2px solid #eee; padding-top: 20px; }
-        input[type="text"] { width: 70%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+        .explanation { margin-top: 20px; padding: 15px; background: #f0fdf4; border-radius: 10px; border: 1px solid #dcfce7; }
+        .hidden-script { filter: blur(5px); pointer-events: none; }
     </style>
 </head>
-<body onclick="initAudio()">
+<body onclick="wakeSpeechEngine()">
 
 <header>
-    <div id="app-title">Eiken Pre-1st Pro</div>
-    <button class="home-btn" onclick="showView('home-view')">🏠 Home</button>
+    <div style="font-size: 1.1rem; font-weight: 900;">Eiken Pre-1st Master</div>
+    <button class="btn btn-home" onclick="showView('home-view')">🏠 MENU</button>
 </header>
 
 <div id="feedback-overlay"></div>
@@ -151,17 +98,19 @@
     
     <!-- 総合メニュー -->
     <section id="home-view" class="view active">
-        <h2 style="text-align:center;">総合メニュー</h2>
+        <h2 style="margin-top:0;">試験対策メニュー</h2>
         
-        <div id="menu-list">
-            <!-- JavaScriptで動的に生成 -->
+        <div id="menu-container">
+            <!-- JSで動的に構築 -->
         </div>
 
-        <div class="dict-area">
-            <h3>簡易辞書</h3>
+        <button class="btn btn-reset" onclick="resetAllProgress()">🔄 学習記録をリセット</button>
+
+        <div style="margin-top:30px; border-top: 1px solid #e2e8f0; padding-top:20px;">
+            <p style="font-size:0.8rem; color:#64748b;">3カ国語辞書ツール</p>
             <div style="display:flex; gap:5px;">
-                <input type="text" id="dict-query" placeholder="単語を入力...">
-                <button onclick="quickSearch()" style="padding:10px; background:var(--primary); color:white; border:none; border-radius:5px;">検索</button>
+                <input type="text" id="dict-q" placeholder="Look up a word..." style="flex:1; padding:10px; border-radius:8px; border:1px solid #cbd5e1;">
+                <button class="btn" style="background:var(--primary); color:white;" onclick="searchWord()">Search</button>
             </div>
             <div id="dict-res" style="margin-top:10px; font-size:0.9rem;"></div>
         </div>
@@ -169,231 +118,241 @@
 
     <!-- クイズ画面 -->
     <section id="quiz-view" class="view">
-        <div class="quiz-box">
-            <div id="quiz-header" style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                <span id="current-pos">Q 1/3</span>
-                <span id="session-score" class="score-badge">Correct: 0</span>
+        <div style="background:white; padding:20px; border-radius:15px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:0.9rem; color:#64748b;">
+                <span id="quiz-category-label">リーディング第1部</span>
+                <span id="quiz-progress-label">1 / 25</span>
             </div>
 
-            <div id="listening-ui" style="display:none;">
-                <button class="audio-btn" onclick="playQuestionAudio()">🔊 英文を聴く</button>
-                <div id="script-display" class="hidden-text" style="padding:10px; margin-bottom:15px; font-style:italic;"></div>
-                <button onclick="document.getElementById('script-display').classList.add('reveal')" style="border:none; background:none; color:var(--primary); text-decoration:underline; margin-bottom:10px; cursor:pointer;">スクリプトを表示</button>
+            <div id="audio-ui" style="display:none;">
+                <button class="btn btn-audio" onclick="playCurrentText()">🔊 音声を聴く</button>
+                <div id="listening-script" class="passage hidden-script" style="font-size:0.9rem; margin-top:10px;"></div>
+                <button onclick="revealScript()" style="color:var(--primary); border:none; background:none; text-decoration:underline; font-size:0.8rem; cursor:pointer;">スクリプトを表示</button>
             </div>
 
-            <div id="passage-display" style="background:#f8fafc; padding:15px; border-radius:10px; margin-bottom:15px; line-height:1.6; display:none;"></div>
-            <div id="question-text" style="font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></div>
-            <div id="options-list"></div>
+            <div id="passage-ui" class="passage" style="display:none;"></div>
+            <div id="question-text" class="question-text"></div>
+            <div id="options-container"></div>
 
-            <div id="explanation-area" style="display:none; margin-top:20px; padding:15px; background:#f0fdf4; border-radius:10px;">
-                <p id="explanation-text"></p>
-                <button class="home-btn" style="background:var(--primary); width:100%;" onclick="nextQuestion()">次へ進む</button>
+            <div id="explanation-ui" class="explanation" style="display:none;">
+                <div id="explanation-content" style="margin-bottom:15px;"></div>
+                <button class="btn" style="background:var(--primary); color:white; width:100%;" onclick="loadNextQuestion()">次の問題へ</button>
             </div>
         </div>
     </section>
 </div>
 
 <script>
-    // --- データ構造 ---
-    const QUESTIONS = [
-        {
-            id: 'v1', category: 'vocabulary', title: '短文空欄補充',
-            text: "The mayor's speech was (  ) by frequent interruptions from the crowd.",
-            options: ["punctuated", "attributed", "facilitated", "reconciled"],
-            answer: 0,
-            explanation: "punctuated: (動作などが)〜で時々中断される。中断が多い演説の文脈に適しています。"
-        },
-        {
-            id: 'r1', category: 'reading', title: '長文読解',
-            passage: "Deep-sea hydrothermal vents are fissures on the seabed from which geothermally heated water issues. They are found near volcanically active places. These vents support unique ecosystems, hosting organisms that depend on chemosynthesis rather than photosynthesis.",
-            text: "How do organisms near hydrothermal vents primarily obtain energy?",
-            options: ["Through photosynthesis", "From volcanic ash", "Through chemosynthesis", "By consuming heated water"],
-            answer: 2,
-            explanation: "第3文に「depend on chemosynthesis(化学合成)」と明記されています。"
-        },
-        {
-            id: 'l1', category: 'listening', title: 'リスニング',
-            text: "Welcome to the museum. Please note that flash photography is strictly prohibited in the Impressionist gallery to protect the paintings. However, you are free to take non-flash photos in the sculpture hall.",
-            question: "What is prohibited in the Impressionist gallery?",
-            options: ["Taking any photos", "Flash photography", "Bringing bags", "Touching sculptures"],
-            answer: 1,
-            explanation: "「flash photography is strictly prohibited」を聴き取ります。"
-        }
+    /**
+     * 【試験基準】問題データ構造
+     * 準1級の構成を模したサンプルデータ
+     */
+    const EIKEN_PRE1_QUESTIONS = [
+        // リーディング1部 (語彙) - 目標25問
+        { id: 1, category: 'reading1', part: '第1部', type: 'text', 
+          text: "The professor's lecture was so (  ) that most of the students struggled to follow his complex arguments.",
+          options: ["abstruse", "superficial", "lenient", "explicit"],
+          answer: 0, explanation: "abstruse: 難解な、深奥な。complex arguments(複雑な議論)を理解するのが大変だったという文脈に合致。" },
+        
+        { id: 2, category: 'reading1', part: '第1部', type: 'text', 
+          text: "After the long drought, the farmers were relieved to see the (  ) harvest this year.",
+          options: ["bountiful", "sparse", "meager", "stagnant"],
+          answer: 0, explanation: "bountiful: 豊富な、豊かな。干ばつの後の「安堵」という文脈から、収穫が多かったと推測します。" },
+
+        // リーディング2・3部 (長文) - 目標16問
+        { id: 101, category: 'reading2', part: '第2・3部', type: 'passage',
+          passage: "The concept of 'nudge theory' suggests that positive reinforcement and indirect suggestions can influence the behavior and decision-making of groups or individuals. Unlike direct regulation, a nudge makes it more likely that an individual will make a particular choice by altering the environment in which the decision is made.",
+          text: "What is a characteristic of 'nudge theory' according to the passage?",
+          options: ["It relies on strict legal enforcement.", "It avoids direct mandates to change behavior.", "It is only effective on small children.", "It forces individuals to make a specific choice."],
+          answer: 1, explanation: "第2文「Unlike direct regulation(直接的な規制とは異なり)」より、強制ではなく環境を変えることで選択を促す手法であることがわかります。" },
+
+        // リスニング (第1・2部) - 目標24問
+        { id: 201, category: 'listening', part: 'リスニング', type: 'listening',
+          text: "W: Excuse me, I'm looking for the photography exhibition.\nM: It's on the third floor, but the elevator is currently undergoing maintenance. You'll need to take the stairs at the end of the hallway.\nW: Oh, I see. My knee has been acting up lately, so that might be difficult.\nM: In that case, I can call a staff member to assist you with the service elevator.",
+          question: "What will the man probably do next?",
+          options: ["Repair the elevator.", "Lead the woman to the stairs.", "Arrange for the service elevator.", "Cancel the exhibition."],
+          answer: 2, explanation: "「call a staff member to assist you with the service elevator」という最後の発話から判断します。" }
     ];
 
-    // --- 状態管理 ---
-    let state = {
+    let appState = {
         currentView: 'home-view',
-        category: '',
+        activeQuestions: [],
         index: 0,
-        sessionCorrect: 0,
-        isAudioInit: false,
+        audioInitialized: false,
         voices: []
     };
 
-    // --- 進捗管理 (LocalStorage) ---
-    const getProgress = () => JSON.parse(localStorage.getItem('eiken_v2_progress')) || {};
-    const saveProgress = (cat, isCorrect) => {
-        const prog = getProgress();
-        if(!prog[cat]) prog[cat] = { total: 0, correct: 0 };
-        prog[cat].total++;
-        if(isCorrect) prog[cat].correct++;
-        localStorage.setItem('eiken_v2_progress', JSON.stringify(prog));
-    };
+    // --- Core Logic ---
 
-    // --- 音声エンジンの初期化 (iOS対策) ---
-    function initAudio() {
-        if (state.isAudioInit) return;
+    function wakeSpeechEngine() {
+        if (appState.audioInitialized) return;
         const uttr = new SpeechSynthesisUtterance("");
-        window.speechSynthesis.speak(uttr); // 空の音声を流してロック解除
-        state.isAudioInit = true;
-        console.log("Audio Context Initialized");
+        window.speechSynthesis.speak(uttr);
+        appState.audioInitialized = true;
     }
 
-    window.speechSynthesis.onvoiceschanged = () => {
-        state.voices = window.speechSynthesis.getVoices();
-    };
-
-    // --- UI制御 ---
     function showView(viewId) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(viewId).classList.add('active');
-        if(viewId === 'home-view') renderMenu();
+        if (viewId === 'home-view') renderMenu();
         window.speechSynthesis.cancel();
     }
 
+    function getProgress() {
+        return JSON.parse(localStorage.getItem('eiken_pro_data')) || {};
+    }
+
+    function saveProgress(qId, isCorrect) {
+        let data = getProgress();
+        data[qId] = isCorrect ? 1 : -1; // 1:正解, -1:不正解
+        localStorage.setItem('eiken_pro_data', JSON.stringify(data));
+    }
+
+    function resetAllProgress() {
+        if (confirm("これまでの学習記録をすべてリセットしますか？")) {
+            localStorage.removeItem('eiken_pro_data');
+            renderMenu();
+        }
+    }
+
     function renderMenu() {
-        const menuList = document.getElementById('menu-list');
+        const container = document.getElementById('menu-container');
         const prog = getProgress();
-        const categories = [
-            { id: 'vocabulary', name: 'リーディング第1部 (語彙)' },
-            { id: 'reading', name: 'リーディング第2・3部 (長文)' },
-            { id: 'listening', name: 'リスニング聴解' }
+        const groups = [
+            { id: 'reading1', name: 'リーディング第1部', desc: '短文空欄補充 (語彙・熟語)', total: 25 },
+            { id: 'reading2', name: 'リーディング第2・3部', desc: '長文読解 (内容一致)', total: 16 },
+            { id: 'listening', name: 'リスニング第1・2部', desc: '聴解問題 (音声主導)', total: 24 }
         ];
 
-        menuList.innerHTML = categories.map(cat => {
-            const data = prog[cat.id] || { total: 0, correct: 0 };
-            const percent = data.total === 0 ? 0 : Math.round((data.correct / data.total) * 100);
+        container.innerHTML = groups.map(g => {
+            const groupQuestions = EIKEN_PRE1_QUESTIONS.filter(q => q.category === g.id);
+            const answeredIds = groupQuestions.filter(q => prog[q.id]);
+            const correctCount = answeredIds.filter(q => prog[q.id] === 1).length;
+            const progressPercent = groupQuestions.length === 0 ? 0 : Math.round((answeredIds.length / groupQuestions.length) * 100);
+
             return `
-                <div class="menu-card" onclick="startQuiz('${cat.id}')">
-                    <div style="display:flex; justify-content:space-between;">
-                        <strong>${cat.name}</strong>
-                        <span class="score-badge">${percent}% (${data.correct}/${data.total})</span>
-                    </div>
-                    <div class="progress-container">
-                        <div class="progress-bar" style="width: ${percent}%"></div>
+                <div class="category-group">
+                    <div class="category-title">${g.name}</div>
+                    <div class="menu-card" onclick="startQuiz('${g.id}')">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-weight:bold;">${g.desc}</div>
+                                <div style="font-size:0.8rem; color:#64748b;">正解: ${correctCount} / 収録: ${groupQuestions.length}問</div>
+                            </div>
+                            <div style="font-weight:bold; color:var(--primary);">${progressPercent}%</div>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width:${progressPercent}%"></div>
+                        </div>
                     </div>
                 </div>
             `;
         }).join('');
     }
 
-    // --- クイズロジック ---
-    function startQuiz(cat) {
-        state.category = cat;
-        state.index = 0;
-        state.sessionCorrect = 0;
-        state.questions = QUESTIONS.filter(q => q.category === cat);
+    function startQuiz(catId) {
+        appState.activeQuestions = EIKEN_PRE1_QUESTIONS.filter(q => q.category === catId);
+        if (appState.activeQuestions.length === 0) return alert("Coming Soon!");
+        appState.index = 0;
         showView('quiz-view');
         renderQuestion();
     }
 
     function renderQuestion() {
-        const q = state.questions[state.index];
-        document.getElementById('current-pos').innerText = `Q ${state.index + 1} / ${state.questions.length}`;
-        document.getElementById('session-score').innerText = `Correct: ${state.sessionCorrect}`;
-        document.getElementById('explanation-area').style.display = 'none';
-        document.getElementById('script-display').classList.remove('reveal');
+        const q = appState.activeQuestions[appState.index];
+        const optContainer = document.getElementById('options-container');
+        const expUi = document.getElementById('explanation-ui');
         
-        // UI切替
-        document.getElementById('listening-ui').style.display = q.category === 'listening' ? 'block' : 'none';
-        document.getElementById('passage-display').style.display = q.category === 'reading' ? 'block' : 'none';
+        // Reset UI
+        expUi.style.display = 'none';
+        document.getElementById('audio-ui').style.display = q.type === 'listening' ? 'block' : 'none';
+        document.getElementById('passage-ui').style.display = q.type === 'passage' ? 'block' : 'none';
+        document.getElementById('listening-script').classList.add('hidden-script');
         
-        if(q.category === 'reading') document.getElementById('passage-display').innerText = q.passage;
-        if(q.category === 'listening') document.getElementById('script-display').innerText = q.text;
+        document.getElementById('quiz-category-label').innerText = q.part;
+        document.getElementById('quiz-progress-label').innerText = `${appState.index + 1} / ${appState.activeQuestions.length}`;
+        
+        if (q.type === 'passage') document.getElementById('passage-ui').innerText = q.passage;
+        if (q.type === 'listening') document.getElementById('listening-script').innerText = q.text;
 
-        document.getElementById('question-text').innerText = q.category === 'listening' ? q.question : q.text;
+        document.getElementById('question-text').innerText = q.type === 'listening' ? q.question : q.text;
 
-        const optionsList = document.getElementById('options-list');
-        optionsList.innerHTML = '';
+        optContainer.innerHTML = '';
         q.options.forEach((opt, i) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
-            btn.innerText = opt;
+            btn.innerText = `${i + 1}. ${opt}`;
             btn.onclick = () => checkAnswer(i, btn);
-            optionsList.appendChild(btn);
+            optContainer.appendChild(btn);
         });
     }
 
-    function checkAnswer(selected, btn) {
-        const q = state.questions[state.index];
-        const isCorrect = (selected === q.answer);
+    function checkAnswer(idx, btn) {
+        const q = appState.activeQuestions[appState.index];
+        const isCorrect = (idx === q.answer);
         const overlay = document.getElementById('feedback-overlay');
 
         // ◯✕演出
         overlay.innerText = isCorrect ? '○' : '×';
-        overlay.className = isCorrect ? 'feedback-correct' : 'feedback-wrong';
+        overlay.style.color = isCorrect ? 'var(--success)' : 'var(--danger)';
         overlay.style.display = 'block';
-        setTimeout(() => { overlay.style.display = 'none'; }, 600);
+        setTimeout(() => overlay.style.display = 'none', 600);
 
-        if(isCorrect) state.sessionCorrect++;
-        saveProgress(state.category, isCorrect);
+        saveProgress(q.id, isCorrect);
 
-        // 正解表示
-        const btns = document.querySelectorAll('.option-btn');
-        btns.forEach((b, i) => {
+        // UI Update
+        document.querySelectorAll('.option-btn').forEach((b, i) => {
             b.disabled = true;
-            if(i === q.answer) b.style.borderColor = 'var(--success)';
-            if(i === selected && !isCorrect) b.style.borderColor = 'var(--danger)';
+            if (i === q.answer) b.style.borderColor = 'var(--success)';
+            if (i === idx && !isCorrect) b.style.borderColor = 'var(--danger)';
         });
 
-        document.getElementById('explanation-area').style.display = 'block';
-        document.getElementById('explanation-text').innerHTML = `<strong>正解: ${q.options[q.answer]}</strong><br>${q.explanation}`;
+        document.getElementById('explanation-ui').style.display = 'block';
+        document.getElementById('explanation-content').innerHTML = `<strong>正解: ${q.options[q.answer]}</strong><br><small>${q.explanation}</small>`;
     }
 
-    function nextQuestion() {
-        state.index++;
-        if(state.index < state.questions.length) {
+    function loadNextQuestion() {
+        appState.index++;
+        if (appState.index < appState.activeQuestions.length) {
             renderQuestion();
         } else {
-            alert(`終了！今回のスコア: ${state.sessionCorrect} / ${state.questions.length}`);
+            alert("このセクションを完了しました。");
             showView('home-view');
         }
     }
 
-    // --- 音声再生 ---
-    function playQuestionAudio() {
+    function playCurrentText() {
         window.speechSynthesis.cancel();
-        const q = state.questions[state.index];
+        const q = appState.activeQuestions[appState.index];
         const uttr = new SpeechSynthesisUtterance(q.text);
-        
-        // 英語音声(en-US)を優先的に探す
-        const voices = window.speechSynthesis.getVoices();
-        const enVoice = voices.find(v => v.lang.includes('en-US')) || voices.find(v => v.lang.includes('en'));
-        if(enVoice) uttr.voice = enVoice;
-        
         uttr.lang = 'en-US';
         uttr.rate = 0.9;
         window.speechSynthesis.speak(uttr);
     }
 
-    // --- 辞書 ---
-    async function quickSearch() {
-        const q = document.getElementById('dict-query').value;
-        const res = document.getElementById('dict-res');
-        if(!q) return;
-        res.innerText = "検索中...";
-        try {
-            const response = await fetch(`https://api.excelapi.org/translate/en-ja?text=${encodeURIComponent(q)}`);
-            const text = await response.text();
-            res.innerHTML = `<strong>${q}</strong>: ${text}`;
-        } catch(e) {
-            res.innerText = "エラーが発生しました。";
-        }
+    function revealScript() {
+        document.getElementById('listening-script').classList.remove('hidden-script');
     }
 
-    // 初回起動
-    renderMenu();
+    async function searchWord() {
+        const q = document.getElementById('dict-q').value;
+        const res = document.getElementById('dict-res');
+        if (!q) return;
+        res.innerText = "Searching...";
+        try {
+            const r = await fetch(`https://api.excelapi.org/translate/en-ja?text=${encodeURIComponent(q)}`);
+            const t = await r.text();
+            res.innerHTML = `<strong>${q}:</strong> ${t}`;
+        } catch (e) { res.innerText = "Error searching dictionary."; }
+    }
+
+    // Init
+    window.addEventListener('load', () => {
+        renderMenu();
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.getVoices();
+        }
+    });
 </script>
 
 </body>
