@@ -2,400 +2,391 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Eiken Pre-1st Mastery Pro</title>
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --accent-color: #e74c3c;
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-color: #333;
+            --primary: #2563eb;
+            --secondary: #64748b;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
         }
 
         body {
-            font-family: 'Helvetica Neue', Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
             margin: 0;
-            line-height: 1.6;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
+        /* ヘッダーナビゲーション */
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .home-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* コンテンツエリア */
         .container {
-            max-width: 900px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
         }
 
-        header {
-            text-align: center;
-            padding: 20px 0;
-            background-color: var(--primary-color);
-            color: white;
-            border-radius: 0 0 15px 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+        .view { display: none; animation: fadeIn 0.3s ease; }
+        .view.active { display: block; }
 
-        /* Dictionary Section */
-        .dictionary-box {
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .dict-tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 10px;
-        }
-
-        .dict-tab {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            background: #eee;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .dict-tab.active {
-            background: var(--secondary-color);
-            color: white;
-        }
-
-        .dict-input-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        /* Menu Section */
+        /* 総合メニューカード */
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-top: 20px;
         }
 
-        .menu-card {
-            background: var(--card-bg);
-            padding: 30px;
-            text-align: center;
+        .card {
+            background: var(--card);
+            padding: 20px;
             border-radius: 15px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
             cursor: pointer;
-            transition: transform 0.2s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             border: 2px solid transparent;
+            transition: all 0.2s;
         }
 
-        .menu-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--secondary-color);
+        .card:active { transform: scale(0.98); }
+        .card.primary { border-left: 8px solid var(--primary); }
+        .card h3 { margin: 0 0 10px 0; color: var(--primary); }
+        .card p { margin: 0; font-size: 0.9rem; color: var(--secondary); }
+
+        /* クイズUI */
+        .quiz-box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .passage-box { background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; line-height: 1.8; font-size: 1.1rem; }
+        .hidden-script { filter: blur(5px); user-select: none; transition: 0.3s; }
+        .hidden-script.reveal { filter: blur(0); user-select: text; }
+
+        .option-btn {
+            width: 100%;
+            text-align: left;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            font-size: 1rem;
+            cursor: pointer;
         }
 
-        .menu-card h3 { margin-top: 0; color: var(--primary-color); }
+        .option-btn.correct { background: #dcfce7; border-color: var(--success); }
+        .option-btn.wrong { background: #fee2e2; border-color: var(--danger); }
 
-        /* Quiz Section */
-        .quiz-container { display: none; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .passage { background: #f9f9f9; padding: 15px; border-left: 5px solid var(--secondary-color); margin-bottom: 20px; font-size: 1.1em; }
-        .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
-        .option-btn { padding: 15px; border: 2px solid #ddd; border-radius: 10px; background: white; cursor: pointer; text-align: left; font-size: 1rem; }
-        .option-btn:hover { background: #f0f8ff; }
-        .option-btn.correct { background: #d4edda; border-color: #28a745; }
-        .option-btn.wrong { background: #f8d7da; border-color: #dc3545; }
+        /* 辞書UI */
+        .dict-tabs { display: flex; gap: 5px; margin-bottom: 10px; }
+        .dict-tab { flex: 1; padding: 10px; border: none; background: #e2e8f0; border-radius: 5px; cursor: pointer; }
+        .dict-tab.active { background: var(--primary); color: white; }
 
-        /* Controls */
-        .btn { padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .btn-primary { background: var(--secondary-color); color: white; }
-        .btn-nav { background: #6c757d; color: white; margin-top: 20px; }
-        .speaker-btn { background: #673ab7; color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .input-group { display: flex; gap: 8px; }
+        input[type="text"] { flex: 1; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; }
 
-        #explanation-box { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; }
-        .explanation-correct { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-blue { background: var(--primary); color: white; width: 100%; margin-top: 10px; }
+        .btn-speaker { background: #8b5cf6; color: white; margin-bottom: 15px; }
 
-        /* Loading Spinner */
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--secondary-color); border-radius: 50%; width: 20px; height: 20px; animation: spin 2s linear infinite; display: inline-block; vertical-align: middle; margin-right: 10px; }
+        #explanation { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; line-height: 1.6; }
+
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <h1>Eiken Pre-1st Mastery</h1>
-        <p>英検準1級 完全対策 Web App</p>
-    </header>
+<header>
+    <div style="font-weight: bold; font-size: 1.2rem;">Eiken Pre-1st Pro</div>
+    <button class="home-btn" onclick="showView('home-view')">🏠 総合メニュー</button>
+</header>
 
-    <!-- 辞書機能 -->
-    <section class="dictionary-box">
-        <div class="dict-tabs">
-            <button class="dict-tab active" onclick="setDictMode('en-ja')">英日</button>
-            <button class="dict-tab" onclick="setDictMode('ja-en')">日英</button>
-            <button class="dict-tab" onclick="setDictMode('en-en')">英英</button>
+<div class="container">
+    
+    <!-- 総合メニュー -->
+    <section id="home-view" class="view active">
+        <h2 style="text-align: center;">英検準1級 総合メニュー</h2>
+        <div class="menu-grid">
+            <div class="card primary" onclick="startQuiz('reading-part1')">
+                <h3>リーディング第1部</h3>
+                <p>短文の語句空欄補充（語彙・熟語問題）</p>
+            </div>
+            <div class="card primary" onclick="startQuiz('reading-part2')">
+                <h3>リーディング第2・3部</h3>
+                <p>長文の内容一致選択（社会・歴史・科学など）</p>
+            </div>
+            <div class="card primary" onclick="startQuiz('listening')">
+                <h3>リスニング第1・2部</h3>
+                <p>会話やパッセージの聴解（音声主導）</p>
+            </div>
+            <div class="card" onclick="showView('dict-view')" style="border-left: 8px solid #64748b; background: #f8fafc;">
+                <h3>3カ国語辞書ツール</h3>
+                <p>英日・日英・英英辞書（API連携）</p>
+            </div>
         </div>
-        <div class="dict-input-group">
-            <input type="text" id="dict-query" placeholder="単語を入力...">
-            <button class="btn btn-primary" onclick="searchDictionary()">検索</button>
-        </div>
-        <div id="dict-result" style="margin-top:10px; font-size: 0.9em; max-height: 150px; overflow-y: auto;"></div>
     </section>
 
-    <!-- メインメニュー -->
-    <div id="main-menu" class="menu-grid">
-        <div class="menu-card" onclick="startQuiz('vocabulary')">
-            <h3>① 語彙力問題</h3>
-            <p>短文の空欄補充<br>(Vocabulary)</p>
-        </div>
-        <div class="menu-card" onclick="startQuiz('reading')">
-            <h3>② 長文読解</h3>
-            <p>パッセージ読解<br>(Reading)</p>
-        </div>
-        <div class="menu-card" onclick="startQuiz('listening')">
-            <h3>③ リスニング</h3>
-            <p>音声クイズ<br>(Listening)</p>
-        </div>
-    </div>
-
     <!-- クイズ画面 -->
-    <div id="quiz-screen" class="quiz-container">
-        <div id="quiz-header" style="display:flex; justify-content:space-between; align-items:center;">
-            <span id="question-progress">Q 1/10</span>
-            <button class="btn btn-nav" onclick="backToMenu()">終了</button>
+    <section id="quiz-view" class="view">
+        <div class="quiz-box">
+            <div id="quiz-meta" style="margin-bottom: 10px; font-weight: bold; color: var(--secondary);"></div>
+            
+            <!-- リスニング用コントロール -->
+            <div id="listening-controls" style="display: none;">
+                <button class="btn btn-speaker" onclick="playCurrentAudio()">🔊 音声を再生する</button>
+                <button id="show-script-btn" class="btn" style="background:#cbd5e1;" onclick="toggleScript()">スクリプトを表示</button>
+            </div>
+
+            <div id="passage-display" class="passage-box" style="display: none;"></div>
+            <div id="question-text" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 20px;"></div>
+            
+            <div id="options-container"></div>
+
+            <div id="explanation" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+                <div id="explanation-text"></div>
+                <button class="btn btn-blue" onclick="handleNext()">次の問題へ</button>
+            </div>
         </div>
+    </section>
 
-        <hr>
-
-        <div id="audio-controls" class="hidden">
-            <button class="btn speaker-btn" onclick="playAudio()">
-                <span>🔊</span> 英文を再生する
-            </button>
+    <!-- 辞書画面 -->
+    <section id="dict-view" class="view">
+        <div class="quiz-box">
+            <h3>3カ国語辞書</h3>
+            <div class="dict-tabs">
+                <button class="dict-tab active" onclick="setDictMode('en-ja', this)">英日</button>
+                <button class="dict-tab" onclick="setDictMode('ja-en', this)">日英</button>
+                <button class="dict-tab" onclick="setDictMode('en-en', this)">英英</button>
+            </div>
+            <div class="input-group">
+                <input type="text" id="dict-input" placeholder="検索語を入力...">
+                <button class="btn btn-blue" style="margin:0; width:auto;" onclick="searchDict()">検索</button>
+            </div>
+            <div id="dict-result" style="margin-top: 20px; line-height: 1.6;"></div>
         </div>
+    </section>
 
-        <div id="passage-text" class="passage hidden"></div>
-        <div id="question-text" style="font-weight:bold; font-size:1.2em; margin-bottom:20px;"></div>
-
-        <div id="options-area" class="options-grid"></div>
-
-        <div id="explanation-box">
-            <strong>【解説・和訳】</strong>
-            <p id="explanation-text"></p>
-            <button class="btn btn-primary" onclick="nextQuestion()">次の問題へ</button>
-        </div>
-    </div>
 </div>
 
 <script>
     /**
-     * 問題データ配列 (EIKEN_PRE1_QUESTIONS)
-     * カテゴリ: vocabulary, reading, listening
+     * 問題データ（準1級レベル・サンプル）
      */
     const EIKEN_PRE1_QUESTIONS = [
         {
-            category: "vocabulary",
-            text: "The new government policy was designed to (  ) the effects of the economic recession.",
-            options: ["mitigate", "exacerbate", "relinquish", "contemplate"],
+            category: "reading-part1",
+            text: "The scientist’s theory was initially met with (  ), but later it was proven to be correct by several independent studies.",
+            options: ["skepticism", "compliance", "veneration", "redundancy"],
             answer: 0,
-            explanation: "正解: mitigate (和らげる、軽減する)。政府の新政策は景気後退の影響を「軽減する」ために設計されました。exacerbate(悪化させる)、relinquish(放棄する)、contemplate(熟考する)。"
+            explanation: "正解: skepticism (懐疑的な見方)。後半の「後に正しさが証明された」という文脈から、当初は「疑われていた」と判断します。veneration(尊敬)、compliance(順守)。"
         },
         {
-            category: "vocabulary",
-            text: "She has an (  ) ability to predict market trends before they happen.",
-            options: ["uncanny", "obsolete", "ambiguous", "superficial"],
-            answer: 0,
-            explanation: "正解: uncanny (並外れた、不可思議な)。市場動向を予測する「並外れた」能力を持っているという意味になります。"
-        },
-        {
-            category: "reading",
-            passage: "The Anthropocene is a proposed geological epoch dating from the commencement of significant human impact on Earth's geology and ecosystems. While the term is widely used in scientific circles, the exact starting date remains a subject of intense debate among geologists.",
-            text: "What is the main point of the passage regarding the Anthropocene?",
+            category: "reading-part2",
+            passage: "Carbon sequestration is the process of capturing and storing atmospheric carbon dioxide. It is one method of reducing the amount of carbon dioxide in the atmosphere with the goal of reducing global climate change. While various natural methods exist, such as reforestation, technological solutions are currently being developed to capture carbon directly from industrial sources.",
+            text: "According to the passage, what is the primary goal of carbon sequestration?",
             options: [
-                "It is a period defined by human influence.",
-                "Its starting date has been officially finalized.",
-                "It has no impact on Earth's ecosystems.",
-                "Geologists have decided to stop using the term."
+                "To increase the efficiency of industrial production.",
+                "To mitigate the effects of global climate change.",
+                "To replace reforestation with technology.",
+                "To find new uses for carbon dioxide."
             ],
-            answer: 0,
-            explanation: "正解: It is a period defined by human influence. 第1文に「人間の影響が地球の地質や生態系に及ぼし始めた時期」と定義されています。"
+            answer: 1,
+            explanation: "正解: To mitigate the effects of global climate change. パッセージ第2文「global climate changeを減らすという目標」と一致します。"
         },
         {
             category: "listening",
-            text: "The manager was disappointed because the sales figures for this quarter were far below the initial projections.",
-            question: "Why was the manager unhappy?",
+            text: "Attention all passengers. The 10:15 express train to London Victoria has been delayed by approximately 20 minutes due to a signaling fault near Brighton. We apologize for the inconvenience and advise passengers traveling to Gatwick Airport to take the alternative shuttle on Platform 4.",
+            question: "What is the reason for the train delay?",
             options: [
-                "The projections were too high.",
-                "The sales results were lower than expected.",
-                "The quarter was too short.",
-                "The staff did not follow the plan."
+                "Bad weather conditions.",
+                "A signaling fault.",
+                "Platform maintenance.",
+                "A shortage of staff."
             ],
             answer: 1,
-            explanation: "正解: The sales results were lower than expected. (売上が期待を下回ったため) 「below the initial projections(当初の予測を下回る)」が言い換えられています。"
-        },
-        {
-            category: "vocabulary",
-            text: "The company's decision to move its factory overseas was (  ) by a desire to reduce labor costs.",
-            options: ["curtailed", "instigated", "prompted", "deviated"],
-            answer: 2,
-            explanation: "正解: prompted (〜を促した/引き起こした)。労働コスト削減の欲求によって「促された」という意味。"
+            explanation: "正解: A signaling fault. 音声内の「due to a signaling fault」を聴き取ります。"
         }
     ];
 
     let currentQuestions = [];
     let currentIndex = 0;
     let dictMode = 'en-ja';
+    let voices = [];
 
-    // --- 辞書機能 ---
-    function setDictMode(mode) {
-        dictMode = mode;
-        document.querySelectorAll('.dict-tab').forEach(btn => {
-            btn.classList.remove('active');
-            if(btn.innerText.includes(mode === 'en-ja' ? '英日' : mode === 'ja-en' ? '日英' : '英英')) {
-                btn.classList.add('active');
-            }
-        });
-    }
-
-    async function searchDictionary() {
-        const query = document.getElementById('dict-query').value.trim();
-        const resultDiv = document.getElementById('dict-result');
-        if (!query) return;
-
-        resultDiv.innerHTML = '<span class="loader"></span> 検索中...';
-
-        try {
-            if (dictMode === 'en-en') {
-                const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${query}`);
-                const data = await res.json();
-                if (data.title) throw new Error("Not found");
-                const def = data[0].meanings[0].definitions[0].definition;
-                resultDiv.innerHTML = `<strong>${query}:</strong> ${def}`;
-            } else {
-                // ExcelAPI (CORS許可済みの無料翻訳APIを利用)
-                const url = `https://api.excelapi.org/translate/${dictMode}?text=${encodeURIComponent(query)}`;
-                const res = await fetch(url);
-                const text = await res.text();
-                resultDiv.innerHTML = `<strong>${query}:</strong> ${text}`;
-            }
-        } catch (err) {
-            resultDiv.innerHTML = "見つかりませんでした。";
+    // --- 初期化 ---
+    window.addEventListener('load', () => {
+        // iOS/iPadOSの音声エンジン準備
+        window.speechSynthesis.getVoices();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = () => { voices = speechSynthesis.getVoices(); };
         }
+    });
+
+    function showView(viewId) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+        window.speechSynthesis.cancel();
     }
 
     // --- クイズロジック ---
     function startQuiz(category) {
         currentQuestions = EIKEN_PRE1_QUESTIONS.filter(q => q.category === category);
-        if (currentQuestions.length === 0) {
-            alert("該当カテゴリーの問題は準備中です。");
-            return;
-        }
         currentIndex = 0;
-        document.getElementById('main-menu').style.display = 'none';
-        document.getElementById('quiz-screen').style.display = 'block';
-        showQuestion();
+        showView('quiz-view');
+        renderQuestion();
     }
 
-    function showQuestion() {
+    function renderQuestion() {
         const q = currentQuestions[currentIndex];
-        document.getElementById('question-progress').innerText = `Q ${currentIndex + 1} / ${currentQuestions.length}`;
-        document.getElementById('explanation-box').style.display = 'none';
+        const meta = document.getElementById('quiz-meta');
+        const passageDisplay = document.getElementById('passage-display');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const listeningControls = document.getElementById('listening-controls');
+        const explanation = document.getElementById('explanation');
+
+        explanation.style.display = 'none';
+        meta.innerText = `Problem ${currentIndex + 1} / ${currentQuestions.length}`;
         
-        // リスニング設定
+        // UIリセット
+        passageDisplay.style.display = 'none';
+        listeningControls.style.display = 'none';
+        passageDisplay.classList.remove('reveal', 'hidden-script');
+
         if (q.category === 'listening') {
-            document.getElementById('audio-controls').classList.remove('hidden');
-            document.getElementById('question-text').innerText = q.question || "音声を聞いて答えてください。";
-            document.getElementById('passage-text').classList.add('hidden');
-        } else if (q.category === 'reading') {
-            document.getElementById('audio-controls').classList.add('hidden');
-            document.getElementById('passage-text').classList.remove('hidden');
-            document.getElementById('passage-text').innerText = q.passage;
-            document.getElementById('question-text').innerText = q.text;
+            listeningControls.style.display = 'block';
+            passageDisplay.innerText = q.text;
+            passageDisplay.classList.add('hidden-script');
+            passageDisplay.style.display = 'block';
+            questionText.innerText = q.question;
+            document.getElementById('show-script-btn').innerText = "スクリプトを表示";
+        } else if (q.category === 'reading-part2') {
+            passageDisplay.innerText = q.passage;
+            passageDisplay.style.display = 'block';
+            questionText.innerText = q.text;
         } else {
-            document.getElementById('audio-controls').classList.add('hidden');
-            document.getElementById('passage-text').classList.add('hidden');
-            document.getElementById('question-text').innerText = q.text;
+            questionText.innerText = q.text;
         }
 
-        const optionsArea = document.getElementById('options-area');
-        optionsArea.innerHTML = '';
-        q.options.forEach((opt, idx) => {
+        optionsContainer.innerHTML = '';
+        q.options.forEach((opt, i) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
-            btn.innerText = `${idx + 1}. ${opt}`;
-            btn.onclick = () => checkAnswer(idx, btn);
-            optionsArea.appendChild(btn);
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(i, btn);
+            optionsContainer.appendChild(btn);
         });
     }
 
-    function checkAnswer(selectedIdx, btn) {
+    function checkAnswer(idx, btn) {
         const q = currentQuestions[currentIndex];
-        const buttons = document.querySelectorAll('.option-btn');
-        buttons.forEach(b => b.disabled = true);
+        const allBtns = document.querySelectorAll('.option-btn');
+        allBtns.forEach(b => b.disabled = true);
 
-        if (selectedIdx === q.answer) {
+        if (idx === q.answer) {
             btn.classList.add('correct');
         } else {
             btn.classList.add('wrong');
-            buttons[q.answer].classList.add('correct');
+            allBtns[q.answer].classList.add('correct');
         }
 
-        const expBox = document.getElementById('explanation-box');
-        expBox.style.display = 'block';
-        expBox.className = 'explanation-correct';
-        document.getElementById('explanation-text').innerText = q.explanation;
+        document.getElementById('explanation').style.display = 'block';
+        document.getElementById('explanation-text').innerHTML = `<strong>解説:</strong><br>${q.explanation}`;
     }
 
-    function nextQuestion() {
+    function handleNext() {
         currentIndex++;
         if (currentIndex < currentQuestions.length) {
-            showQuestion();
+            renderQuestion();
         } else {
-            alert("全ての練習問題を完了しました！");
-            backToMenu();
+            alert("このセクションの全問題が終了しました。");
+            showView('home-view');
         }
     }
 
-    function backToMenu() {
-        document.getElementById('main-menu').style.display = 'grid';
-        document.getElementById('quiz-screen').style.display = 'none';
-        window.speechSynthesis.cancel(); // 音声停止
-    }
-
-    // --- Web Speech API (音声再生) ---
-    function playAudio() {
-        const q = currentQuestions[currentIndex];
-        const textToSpeak = q.category === 'listening' ? q.text : "";
-        if (!textToSpeak) return;
-
-        // ブラウザの既存音声を停止
+    // --- 音声再生ロジック ---
+    function playCurrentAudio() {
         window.speechSynthesis.cancel();
-
-        const uttr = new SpeechSynthesisUtterance(textToSpeak);
+        const q = currentQuestions[currentIndex];
+        const uttr = new SpeechSynthesisUtterance(q.text);
         
-        // 音声リストから en-US または en-GB を探す
-        const voices = window.speechSynthesis.getVoices();
-        const enVoice = voices.find(v => v.lang === 'en-US' || v.lang.startsWith('en-'));
-        if (enVoice) uttr.voice = enVoice;
-
+        // 英語音声を優先選択
+        if (voices.length === 0) voices = speechSynthesis.getVoices();
+        const enVoice = voices.find(v => v.lang === 'en-US' || v.lang === 'en-GB') || voices[0];
+        
+        uttr.voice = enVoice;
         uttr.lang = 'en-US';
-        uttr.rate = 0.9; // 準1級なら少し自然かつ聞き取りやすい速度
-        uttr.pitch = 1.0;
-
+        uttr.rate = 0.9;
         window.speechSynthesis.speak(uttr);
     }
 
-    // ページ読み込み時に音声を初期化（ブラウザによっては必要）
-    window.speechSynthesis.getVoices();
+    function toggleScript() {
+        const p = document.getElementById('passage-display');
+        const btn = document.getElementById('show-script-btn');
+        p.classList.toggle('reveal');
+        btn.innerText = p.classList.contains('reveal') ? "スクリプトを隠す" : "スクリプトを表示";
+    }
+
+    // --- 辞書ロジック ---
+    function setDictMode(mode, el) {
+        dictMode = mode;
+        document.querySelectorAll('.dict-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    async function searchDict() {
+        const query = document.getElementById('dict-input').value.trim();
+        const resDiv = document.getElementById('dict-result');
+        if (!query) return;
+
+        resDiv.innerHTML = '<div class="loader"></div> 検索中...';
+
+        try {
+            if (dictMode === 'en-en') {
+                const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${query}`);
+                const data = await res.json();
+                resDiv.innerHTML = `<strong>Definition:</strong><br>${data[0].meanings[0].definitions[0].definition}`;
+            } else {
+                const res = await fetch(`https://api.excelapi.org/translate/${dictMode}?text=${encodeURIComponent(query)}`);
+                const text = await res.text();
+                resDiv.innerHTML = `<strong>翻訳結果:</strong><br>${text}`;
+            }
+        } catch (e) {
+            resDiv.innerHTML = "結果が見つかりませんでした。";
+        }
+    }
 </script>
 
 </body>
-              </html>
+    </html>
