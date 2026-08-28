@@ -148,20 +148,23 @@
     const db = getFirestore(app);
     window.currentUser = null;
 
-    // リダイレクト結果の処理
-    getRedirectResult(auth).catch((error) => {
-      if (error.code) {
-        alert("ログインエラー: " + error.message + " (" + error.code + ")");
+    // リダイレクト結果の初期化処理
+    getRedirectResult(auth).then((result) => {
+      if (result && result.user) {
+        console.log("ログイン成功:", result.user.displayName);
       }
+    }).catch((error) => {
+      alert("ログイン認証エラー: " + error.message + " (" + error.code + ")");
     });
 
-    // ログイン処理（リダイレクト方式）
-    window.loginWithGoogle = () => {
+    function doLogin() {
       const provider = new GoogleAuthProvider();
       signInWithRedirect(auth, provider);
-    };
+    }
 
-    window.logout = () => signOut(auth);
+    function doLogout() {
+      signOut(auth);
+    }
 
     onAuthStateChanged(auth, (user) => {
       window.currentUser = user;
@@ -171,12 +174,12 @@
       if (user) {
         statusEl.innerText = `👤 ${user.displayName}`;
         authBtn.innerText = "ログアウト";
-        authBtn.onclick = window.logout;
+        authBtn.onclick = doLogout;
         loadHistory();
       } else {
         statusEl.innerText = "未ログイン";
         authBtn.innerText = "Googleでログイン";
-        authBtn.onclick = window.loginWithGoogle;
+        authBtn.onclick = doLogin;
         document.getElementById("historyList").innerHTML = "";
       }
     });
