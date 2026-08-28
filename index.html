@@ -148,15 +148,13 @@
     const db = firebase.firestore();
     let currentUser = null;
 
-    // 永続化設定（LOCAL）を明示的に指定
-    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => {
-      return auth.getRedirectResult();
-    }).then((result) => {
+    // 画面復帰時の結果判定
+    auth.getRedirectResult().then((result) => {
       if (result && result.user) {
-        alert("ログイン成功: " + (result.user.displayName || result.user.email));
+        alert("ログインに成功しました: " + (result.user.displayName || result.user.email));
       }
     }).catch((error) => {
-      alert("ログイン判定エラー (" + error.code + "): " + error.message);
+      alert("ログインエラー (" + error.code + "): " + error.message);
     });
 
     auth.onAuthStateChanged((user) => {
@@ -180,6 +178,7 @@
         auth.signOut().then(() => alert("ログアウトしました")).catch(e => alert(e.message));
       } else {
         const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
         auth.signInWithRedirect(provider);
       }
     }
