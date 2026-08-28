@@ -223,8 +223,10 @@
 </div>
 
 <script>
+  // Firebaseの設定
+  // apiKey には Firebase Console の「プロジェクトの設定 > 全般 > Web アプリ」に表示されるWeb APIキー（AIzaSy...）を指定してください。
   const firebaseConfig = {
-    apiKey: "AIzaSyCk8fSvzuL1-inDBEXFgrqXdXAbWMlov8",
+    apiKey: "YOUR_FIREBASE_WEB_API_KEY", // ← Firebase Consoleで確認したWeb APIキーに書き換えてください
     authDomain: "eiken-pre1-app.firebaseapp.com",
     projectId: "eiken-pre1-app",
     storageBucket: "eiken-pre1-app.firebasestorage.app",
@@ -233,7 +235,11 @@
     measurementId: "G-B7ZPY5QLCC"
   };
 
-  firebase.initializeApp(firebaseConfig);
+  // 重複初期化防止ガード
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+
   const auth = firebase.auth();
   const db = firebase.firestore();
   let currentUser = null;
@@ -325,7 +331,8 @@
   }
 
   async function callGemini(promptText, apiKey) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey.trim()}`;
+    // 正しい標準モデル名 (gemini-1.5-flash または gemini-2.0-flash)
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
     const response = await fetch(url, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ systemInstruction: { parts: [{ text: systemInstructions }] }, contents: [{ parts: [{ text: promptText }] }] })
