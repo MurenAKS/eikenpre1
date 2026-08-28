@@ -127,7 +127,7 @@
     .history-item { background: #f9f9f9; padding: 12px; margin-top: 8px; border-radius: 4px; border-left: 3px solid #ccc; font-size: 0.9rem; }
   </style>
 
-  <!-- Firebase Compat SDK -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -147,6 +147,15 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     let currentUser = null;
+
+    // 画面遷移後のログイン結果を取得
+    auth.getRedirectResult().then((result) => {
+      if (result && result.user) {
+        alert("ログイン成功: " + result.user.displayName);
+      }
+    }).catch((error) => {
+      alert("ログインエラー: " + error.message);
+    });
 
     auth.onAuthStateChanged((user) => {
       currentUser = user;
@@ -169,11 +178,8 @@
         auth.signOut().then(() => alert("ログアウトしました")).catch(e => alert(e.message));
       } else {
         const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).then((result) => {
-          alert("ログイン成功: " + result.user.displayName);
-        }).catch((error) => {
-          alert("認証エラー (" + error.code + "): " + error.message);
-        });
+        // ポップアップではなく画面遷移（リダイレクト）でログインを実行
+        auth.signInWithRedirect(provider);
       }
     }
 
