@@ -127,6 +127,13 @@
     .history-item { background: #f9f9f9; padding: 12px; margin-top: 8px; border-radius: 4px; border-left: 3px solid #ccc; font-size: 0.9rem; }
   </style>
 
+  <script>
+    // グローバルエラー補捉
+    window.addEventListener('error', function(e) {
+      alert("JavaScriptエラー検知:\n" + e.message + "\n行: " + e.lineno);
+    });
+  </script>
+
   <!-- Firebase SDK Modules -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -143,46 +150,53 @@
       measurementId: "G-B7ZPY5QLCC"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    window.currentUser = null;
+    let auth, db;
 
-    // 画面遷移（リダイレクト）後のログイン結果を受け取る
-    getRedirectResult(auth).catch((error) => {
-      if (error && error.code) {
-        alert("【ログインエラー】" + error.message);
-      }
-    });
+    try {
+      const app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      window.currentUser = null;
 
-    // ログイン処理（画面遷移方式）
+      getRedirectResult(auth).catch((error) => {
+        if (error && error.code) {
+          alert("リダイレクト認証エラー: " + error.message + " (" + error.code + ")");
+        }
+      });
+
+      onAuthStateChanged(auth, (user) => {
+        window.currentUser = user;
+        const statusEl = document.getElementById("userStatus");
+        const authBtn = document.getElementById("authBtn");
+        
+        if (user) {
+          statusEl.innerText = `👤 ${user.displayName}`;
+          authBtn.innerText = "ログアウト";
+          authBtn.onclick = doLogout;
+          loadHistory();
+        } else {
+          statusEl.innerText = "未ログイン";
+          authBtn.innerText = "Googleでログイン";
+          authBtn.onclick = doLogin;
+          document.getElementById("historyList").innerHTML = "";
+        }
+      });
+    } catch (err) {
+      alert("Firebase初期化エラー: " + err.message);
+    }
+
     function doLogin() {
-      const provider = new GoogleAuthProvider();
-      signInWithRedirect(auth, provider);
+      try {
+        const provider = new GoogleAuthProvider();
+        signInWithRedirect(auth, provider);
+      } catch (err) {
+        alert("ログイン呼び出しエラー: " + err.message);
+      }
     }
 
     function doLogout() {
       signOut(auth).catch((error) => alert("ログアウトエラー: " + error.message));
     }
-
-    // ログイン状態の監視
-    onAuthStateChanged(auth, (user) => {
-      window.currentUser = user;
-      const statusEl = document.getElementById("userStatus");
-      const authBtn = document.getElementById("authBtn");
-      
-      if (user) {
-        statusEl.innerText = `👤 ${user.displayName}`;
-        authBtn.innerText = "ログアウト";
-        authBtn.onclick = doLogout;
-        loadHistory();
-      } else {
-        statusEl.innerText = "未ログイン";
-        authBtn.innerText = "Googleでログイン";
-        authBtn.onclick = doLogin;
-        document.getElementById("historyList").innerHTML = "";
-      }
-    });
 
     window.saveToFirestore = async (mode, topicText, userInput, resultText) => {
       if (!window.currentUser) return;
