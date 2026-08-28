@@ -148,13 +148,15 @@
     const db = firebase.firestore();
     let currentUser = null;
 
-    // 画面遷移後のログイン結果を取得
-    auth.getRedirectResult().then((result) => {
+    // 永続化設定（LOCAL）を明示的に指定
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => {
+      return auth.getRedirectResult();
+    }).then((result) => {
       if (result && result.user) {
-        alert("ログイン成功: " + result.user.displayName);
+        alert("ログイン成功: " + (result.user.displayName || result.user.email));
       }
     }).catch((error) => {
-      alert("ログインエラー: " + error.message);
+      alert("ログイン判定エラー (" + error.code + "): " + error.message);
     });
 
     auth.onAuthStateChanged((user) => {
@@ -178,7 +180,6 @@
         auth.signOut().then(() => alert("ログアウトしました")).catch(e => alert(e.message));
       } else {
         const provider = new firebase.auth.GoogleAuthProvider();
-        // ポップアップではなく画面遷移（リダイレクト）でログインを実行
         auth.signInWithRedirect(provider);
       }
     }
