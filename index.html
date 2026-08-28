@@ -130,7 +130,7 @@
   <!-- Firebase SDK Modules -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, query, orderBy, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -148,10 +148,19 @@
     const db = getFirestore(app);
     window.currentUser = null;
 
-    window.loginWithGoogle = async () => {
+    // リダイレクト結果の処理
+    getRedirectResult(auth).catch((error) => {
+      if (error.code) {
+        alert("ログインエラー: " + error.message + " (" + error.code + ")");
+      }
+    });
+
+    // ログイン処理（リダイレクト方式）
+    window.loginWithGoogle = () => {
       const provider = new GoogleAuthProvider();
-      try { await signInWithPopup(auth, provider); } catch (e) { alert("ログイン失敗: " + e.message); }
+      signInWithRedirect(auth, provider);
     };
+
     window.logout = () => signOut(auth);
 
     onAuthStateChanged(auth, (user) => {
@@ -183,26 +192,32 @@
           resultText: resultText
         });
         loadHistory();
-      } catch (e) { console.error("Firestore保存エラー:", e); }
+      } catch (e) {
+        alert("保存エラー: " + e.message);
+      }
     };
 
     async function loadHistory() {
       if (!window.currentUser) return;
-      const historyRef = collection(db, "users", window.currentUser.uid, "history");
-      const q = query(historyRef, orderBy("timestamp", "desc"));
-      const querySnapshot = await getDocs(q);
-      
-      const listEl = document.getElementById("historyList");
-      listEl.innerHTML = "";
+      try {
+        const historyRef = collection(db, "users", window.currentUser.uid, "history");
+        const q = query(historyRef, orderBy("timestamp", "desc"));
+        const querySnapshot = await getDocs(q);
+        
+        const listEl = document.getElementById("historyList");
+        listEl.innerHTML = "";
 
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const dateStr = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString("ja-JP") : "保存中...";
-        const item = document.createElement("div");
-        item.className = "history-item";
-        item.innerHTML = `<strong>[${data.mode}]</strong> ${dateStr}<br>お題: ${data.topicText.substring(0, 40)}...`;
-        listEl.appendChild(item);
-      });
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const dateStr = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString("ja-JP") : "保存中...";
+          const item = document.createElement("div");
+          item.className = "history-item";
+          item.innerHTML = `<strong>[${data.mode}]</strong> ${dateStr}<br>お題: ${data.topicText.substring(0, 40)}...`;
+          listEl.appendChild(item);
+        });
+      } catch (e) {
+        console.error("履歴読み込みエラー:", e);
+      }
     }
   </script>
 </head>
