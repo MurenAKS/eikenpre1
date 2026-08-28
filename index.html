@@ -131,86 +131,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCk8fSvzuL1-inDBEXFgrqXdXAbWMlov8",
-      authDomain: "eiken-pre1-app.firebaseapp.com",
-      projectId: "eiken-pre1-app",
-      storageBucket: "eiken-pre1-app.firebasestorage.app",
-      messagingSenderId: "93308031701",
-      appId: "1:93308031701:web:1fd6755ade1c761b74c85c",
-      measurementId: "G-B7ZPY5QLCC"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    let currentUser = null;
-
-    // 画面復帰時の結果判定
-    auth.getRedirectResult().then((result) => {
-      if (result && result.user) {
-        alert("ログインに成功しました: " + (result.user.displayName || result.user.email));
-      }
-    }).catch((error) => {
-      alert("ログインエラー (" + error.code + "): " + error.message);
-    });
-
-    auth.onAuthStateChanged((user) => {
-      currentUser = user;
-      const statusEl = document.getElementById("userStatus");
-      const authBtn = document.getElementById("authBtn");
-      
-      if (user) {
-        statusEl.innerText = `👤 ${user.displayName || user.email}`;
-        authBtn.innerText = "ログアウト";
-        loadHistory();
-      } else {
-        statusEl.innerText = "未ログイン";
-        authBtn.innerText = "Googleでログイン";
-        document.getElementById("historyList").innerHTML = "";
-      }
-    });
-
-    function handleAuthAction() {
-      if (currentUser) {
-        auth.signOut().then(() => alert("ログアウトしました")).catch(e => alert(e.message));
-      } else {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: 'select_account' });
-        auth.signInWithRedirect(provider);
-      }
-    }
-
-    function saveToFirestore(mode, topicText, userInput, resultText) {
-      if (!currentUser) return;
-      db.collection("users").doc(currentUser.uid).collection("history").add({
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        mode: mode,
-        topicText: topicText,
-        userInput: userInput,
-        resultText: resultText
-      }).then(() => loadHistory()).catch(e => alert("保存エラー: " + e.message));
-    }
-
-    function loadHistory() {
-      if (!currentUser) return;
-      db.collection("users").doc(currentUser.uid).collection("history")
-        .orderBy("timestamp", "desc").get().then((querySnapshot) => {
-          const listEl = document.getElementById("historyList");
-          listEl.innerHTML = "";
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const dateStr = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString("ja-JP") : "保存中...";
-            const item = document.createElement("div");
-            item.className = "history-item";
-            item.innerHTML = `<strong>[${data.mode}]</strong> ${dateStr}<br>お題: ${data.topicText.substring(0, 40)}...`;
-            listEl.appendChild(item);
-          });
-        });
-    }
-  </script>
 </head>
 <body>
 
@@ -220,7 +140,7 @@
     <div style="display: flex; align-items: center; gap: 10px;">
       <input type="password" id="apiKey" class="api-key-input" placeholder="Gemini API Keyを入力">
       <span id="userStatus" style="font-size:0.9rem; font-weight:bold;">未ログイン</span>
-      <button id="authBtn" class="btn" style="width:auto; padding:6px 12px; font-size:0.85rem;" onclick="handleAuthAction()">Googleでログイン</button>
+      <button id="authBtn" class="btn" style="width:auto; padding:6px 12px; font-size:0.85rem;" onclick="loginDirect()">Googleでログイン</button>
     </div>
   </div>
 
@@ -301,6 +221,83 @@
 </div>
 
 <script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCk8fSvzuL1-inDBEXFgrqXdXAbWMlov8",
+    authDomain: "eiken-pre1-app.firebaseapp.com",
+    projectId: "eiken-pre1-app",
+    storageBucket: "eiken-pre1-app.firebasestorage.app",
+    messagingSenderId: "93308031701",
+    appId: "1:93308031701:web:1fd6755ade1c761b74c85c",
+    measurementId: "G-B7ZPY5QLCC"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  let currentUser = null;
+
+  function loginDirect() {
+    alert("ログイン処理を呼出します");
+    if (currentUser) {
+      auth.signOut().then(() => alert("ログアウトしました"));
+    } else {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithRedirect(provider);
+    }
+  }
+
+  auth.getRedirectResult().then((result) => {
+    if (result && result.user) {
+      alert("ログイン成功: " + (result.user.displayName || result.user.email));
+    }
+  }).catch((error) => {
+    alert("認証エラー (" + error.code + "): " + error.message);
+  });
+
+  auth.onAuthStateChanged((user) => {
+    currentUser = user;
+    const statusEl = document.getElementById("userStatus");
+    const authBtn = document.getElementById("authBtn");
+    
+    if (user) {
+      statusEl.innerText = `👤 ${user.displayName || user.email}`;
+      authBtn.innerText = "ログアウト";
+      loadHistory();
+    } else {
+      statusEl.innerText = "未ログイン";
+      authBtn.innerText = "Googleでログイン";
+      document.getElementById("historyList").innerHTML = "";
+    }
+  });
+
+  function saveToFirestore(mode, topicText, userInput, resultText) {
+    if (!currentUser || !db) return;
+    db.collection("users").doc(currentUser.uid).collection("history").add({
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      mode: mode,
+      topicText: topicText,
+      userInput: userInput,
+      resultText: resultText
+    }).then(() => loadHistory()).catch(e => alert("保存エラー: " + e.message));
+  }
+
+  function loadHistory() {
+    if (!currentUser || !db) return;
+    db.collection("users").doc(currentUser.uid).collection("history")
+      .orderBy("timestamp", "desc").get().then((querySnapshot) => {
+        const listEl = document.getElementById("historyList");
+        listEl.innerHTML = "";
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const dateStr = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString("ja-JP") : "保存中...";
+          const item = document.createElement("div");
+          item.className = "history-item";
+          item.innerHTML = `<strong>[${data.mode}]</strong> ${dateStr}<br>お題: ${data.topicText.substring(0, 40)}...`;
+          listEl.appendChild(item);
+        });
+      });
+  }
+
   let currentMode = '';
   let currentPromptText = '';
   const systemInstructions = `あなたは英検準1級（CEFR B2）の採点・指導エキスパートです。ユーザーの入力に対して、評価・アドバイス・解説・模範解答を丁寧な日本語で分かりやすく出力してください。`;
