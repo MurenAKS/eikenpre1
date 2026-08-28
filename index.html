@@ -127,19 +127,12 @@
     .history-item { background: #f9f9f9; padding: 12px; margin-top: 8px; border-radius: 4px; border-left: 3px solid #ccc; font-size: 0.9rem; }
   </style>
 
+  <!-- Firebase Compat SDK (全ブラウザ互換仕様) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
   <script>
-    // グローバルエラー補捉
-    window.addEventListener('error', function(e) {
-      alert("JavaScriptエラー検知:\n" + e.message + "\n行: " + e.lineno);
-    });
-  </script>
-
-  <!-- Firebase SDK Modules -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, query, orderBy, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
     const firebaseConfig = {
       apiKey: "AIzaSyCk8fSvzuL1-inDBEXFgrqXdXAbWMlov8",
       authDomain: "eiken-pre1-app.firebaseapp.com",
@@ -150,91 +143,78 @@
       measurementId: "G-B7ZPY5QLCC"
     };
 
-    let auth, db;
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    let currentUser = null;
 
-    try {
-      const app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
-      db = getFirestore(app);
-      window.currentUser = null;
-
-      getRedirectResult(auth).catch((error) => {
-        if (error && error.code) {
-          alert("リダイレクト認証エラー: " + error.message + " (" + error.code + ")");
-        }
-      });
-
-      onAuthStateChanged(auth, (user) => {
-        window.currentUser = user;
-        const statusEl = document.getElementById("userStatus");
-        const authBtn = document.getElementById("authBtn");
-        
-        if (user) {
-          statusEl.innerText = `👤 ${user.displayName}`;
-          authBtn.innerText = "ログアウト";
-          authBtn.onclick = doLogout;
-          loadHistory();
-        } else {
-          statusEl.innerText = "未ログイン";
-          authBtn.innerText = "Googleでログイン";
-          authBtn.onclick = doLogin;
-          document.getElementById("historyList").innerHTML = "";
-        }
-      });
-    } catch (err) {
-      alert("Firebase初期化エラー: " + err.message);
-    }
-
-    function doLogin() {
-      try {
-        const provider = new GoogleAuthProvider();
-        signInWithRedirect(auth, provider);
-      } catch (err) {
-        alert("ログイン呼び出しエラー: " + err.message);
+    // ログイン処理
+    function handleAuthAction() {
+      if (currentUser) {
+        auth.signOut().then(() => {
+          alert("ログアウトしました");
+        }).catch(err => {
+          alert("ログアウトエラー: " + err.message);
+        });
+      } else {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithRedirect(provider);
       }
     }
 
-    function doLogout() {
-      signOut(auth).catch((error) => alert("ログアウトエラー: " + error.message));
-    }
-
-    window.saveToFirestore = async (mode, topicText, userInput, resultText) => {
-      if (!window.currentUser) return;
-      try {
-        await addDoc(collection(db, "users", window.currentUser.uid, "history"), {
-          timestamp: serverTimestamp(),
-          mode: mode,
-          topicText: topicText,
-          userInput: userInput,
-          resultText: resultText
-        });
+    // 認証状態の監視
+    auth.onAuthStateChanged((user) => {
+      currentUser = user;
+      const statusEl = document.getElementById("userStatus");
+      const authBtn = document.getElementById("authBtn");
+      
+      if (user) {
+        statusEl.innerText = `👤 ${user.displayName}`;
+        authBtn.innerText = "ログアウト";
         loadHistory();
-      } catch (e) {
+      } else {
+        statusEl.innerText = "未ログイン";
+        authBtn.innerText = "Googleでログイン";
+        document.getElementById("historyList").innerHTML = "";
+      }
+    });
+
+    // 履歴保存
+    function saveToFirestore(mode, topicText, userInput, resultText) {
+      if (!currentUser) return;
+      db.collection("users").doc(currentUser.uid).collection("history").add({
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        mode: mode,
+        topicText: topicText,
+        userInput: userInput,
+        resultText: resultText
+      }).then(() => {
+        loadHistory();
+      }).catch((e) => {
         alert("Firestore保存エラー: " + e.message);
-      }
-    };
+      });
+    }
 
-    async function loadHistory() {
-      if (!window.currentUser) return;
-      try {
-        const historyRef = collection(db, "users", window.currentUser.uid, "history");
-        const q = query(historyRef, orderBy("timestamp", "desc"));
-        const querySnapshot = await getDocs(q);
-        
-        const listEl = document.getElementById("historyList");
-        listEl.innerHTML = "";
-
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          const dateStr = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString("ja-JP") : "保存中...";
-          const item = document.createElement("div");
-          item.className = "history-item";
-          item.innerHTML = `<strong>[${data.mode}]</strong> ${dateStr}<br>お題: ${data.topicText.substring(0, 40)}...`;
-          listEl.appendChild(item);
+    // 履歴ロード
+    function loadHistory() {
+      if (!currentUser) return;
+      db.collection("users").doc(currentUser.uid).collection("history")
+        .orderBy("timestamp", "desc")
+        .get()
+        .then((querySnapshot) => {
+          const listEl = document.getElementById("historyList");
+          listEl.innerHTML = "";
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const dateStr = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString("ja-JP") : "保存中...";
+            const item = document.createElement("div");
+            item.className = "history-item";
+            item.innerHTML = `<strong>[${data.mode}]</strong> ${dateStr}<br>お題: ${data.topicText.substring(0, 40)}...`;
+            listEl.appendChild(item);
+          });
+        }).catch((e) => {
+          console.error("履歴取得エラー:", e);
         });
-      } catch (e) {
-        console.error("履歴読み込みエラー:", e);
-      }
     }
   </script>
 </head>
@@ -246,7 +226,7 @@
     <div style="display: flex; align-items: center; gap: 10px;">
       <input type="password" id="apiKey" class="api-key-input" placeholder="Gemini API Keyを入力">
       <span id="userStatus" style="font-size:0.9rem; font-weight:bold;">未ログイン</span>
-      <button id="authBtn" class="btn" style="width:auto; padding:6px 12px; font-size:0.85rem;">Googleでログイン</button>
+      <button id="authBtn" class="btn" style="width:auto; padding:6px 12px; font-size:0.85rem;" onclick="handleAuthAction()">Googleでログイン</button>
     </div>
   </div>
 
@@ -441,9 +421,7 @@ ${userInput}
       const resultText = await callGemini(evalPrompt, apiKey);
       document.getElementById('resultContent').innerHTML = `<div class="box">${resultText}</div>`;
       
-      if (window.saveToFirestore) {
-        window.saveToFirestore(currentMode, currentPromptText, userInput, resultText);
-      }
+      saveToFirestore(currentMode, currentPromptText, userInput, resultText);
     } catch (error) {
       document.getElementById('resultContent').innerHTML = `<p style="color:red;">エラーが発生しました: ${error.message}</p>`;
     } finally {
