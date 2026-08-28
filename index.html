@@ -133,7 +133,6 @@
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, query, orderBy, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 取得した Firebase 設定情報
     const firebaseConfig = {
       apiKey: "AIzaSyCk8fSvzuL1-inDBEXFgrqXdXAbWMlov8",
       authDomain: "eiken-pre1-app.firebaseapp.com",
@@ -149,14 +148,12 @@
     const db = getFirestore(app);
     window.currentUser = null;
 
-    // ログイン / ログアウト
     window.loginWithGoogle = async () => {
       const provider = new GoogleAuthProvider();
       try { await signInWithPopup(auth, provider); } catch (e) { alert("ログイン失敗: " + e.message); }
     };
     window.logout = () => signOut(auth);
 
-    // 認証状態の監視
     onAuthStateChanged(auth, (user) => {
       window.currentUser = user;
       const statusEl = document.getElementById("userStatus");
@@ -175,7 +172,6 @@
       }
     });
 
-    // 成績・解答履歴の保存
     window.saveToFirestore = async (mode, topicText, userInput, resultText) => {
       if (!window.currentUser) return;
       try {
@@ -190,7 +186,6 @@
       } catch (e) { console.error("Firestore保存エラー:", e); }
     };
 
-    // 履歴ロード
     async function loadHistory() {
       if (!window.currentUser) return;
       const historyRef = collection(db, "users", window.currentUser.uid, "history");
@@ -223,7 +218,6 @@
     </div>
   </div>
 
-  <!-- 📄 一次試験・筆記対策 -->
   <div class="category-title">📄 一次試験・筆記対策</div>
   <div class="card-grid">
     <div class="card">
@@ -248,7 +242,6 @@
     </div>
   </div>
 
-  <!-- 🎧 一次試験・リスニング -->
   <div class="category-title">🎧 一次試験・リスニング</div>
   <div class="card-grid">
     <div class="card card-listening">
@@ -263,7 +256,6 @@
     </div>
   </div>
 
-  <!-- 🗣️ 二次試験・面接対策 -->
   <div class="category-title">🗣️ 二次試験・面接対策</div>
   <div class="card-grid">
     <div class="card card-speaking" style="grid-column: 1 / -1;">
@@ -273,7 +265,6 @@
     </div>
   </div>
 
-  <!-- テスト実施エリア -->
   <div id="testArea" class="test-area hidden">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <h3 id="modeTitle" style="margin:0;">テスト</h3>
@@ -290,14 +281,12 @@
     <button class="btn" onclick="submitToGemini()" style="margin-top:15px; font-size:1.1rem; padding:12px;">送信して判定・解説を表示</button>
   </div>
 
-  <!-- 採点結果エリア -->
   <div id="resultArea" class="result-area hidden">
     <h3>採点・分析結果</h3>
     <div id="loadingText" class="loading hidden">AI分析中... お待ちください。</div>
     <div id="resultContent"></div>
   </div>
 
-  <!-- 履歴・成績エリア -->
   <div class="history-area">
     <h3>個人学習履歴・進度管理</h3>
     <p style="font-size:0.85rem; color:#666;">※Googleでログインすると学習履歴が自動保存されます。</p>
@@ -366,13 +355,13 @@
     loadingEl.classList.remove('hidden');
 
     const prompts = {
-      'vocab': '英検準1級レベルの短文空所補充問題（語彙）を1問、4つの選択肢(1-4)付きで作成してください。',
-      'reading': '英検準1級レベルの長文読解（1〜2パッセージ）と設問を作成してください。',
-      'writing_opinion': '英検準1級ライティング（意見論述）のTOPIC（お題）を1つ生成してください。',
-      'writing_summary': '英検準1級要約問題用の英文（100〜120語程度）を作成してください。',
-      'listening': '英検準1級リスニング対話文スクリプトと設問、選択肢(1-4)を作成してください。',
-      'shadowing': 'シャドーイング練習用の英検準1級レベルの英文（50語程度）と音変化（連結・脱落）の解説ポイントを提示してください。',
-      'speaking_full': '英検準1級二次試験の4コマ漫画状況設定（No.1）および関連する質問（No.2〜4）をセットで作成してください。'
+      'vocab': '英検準1級レベルの短文空所補充問題（語彙）を1問作成してください。問題文と4つの選択肢(1-4)のみを出力し、正解・和訳・解説は一切出力しないでください。',
+      'reading': '英検準1級レベルの長文読解パッセージ1つと設問を作成してください。正解や解説は出力しないでください。',
+      'writing_opinion': '英検準1級ライティング（意見論述）のTOPIC（お題）を1つ生成してください。模範解答は含めないでください。',
+      'writing_summary': '英検準1級要約問題用の英文（100〜120語程度）を作成してください。要約例は含めないでください。',
+      'listening': '英検準1級リスニング対話文スクリプトと設問、選択肢(1-4)を作成してください。正解や解説は出力しないでください。',
+      'shadowing': 'シャドーイング練習用の英検準1級レベルの英文（50語程度）を1つ提示してください。解説は出力しないでください。',
+      'speaking_full': '英検準1級二次試験の4コマ漫画状況設定（No.1）および関連する質問（No.2〜4）のみを作成してください。解答例は出力しないでください。'
     };
 
     try {
@@ -411,9 +400,9 @@ ${userInput}
 
 【指示】
 上記解答を英検準1級の基準で詳細に採点・添削・解説してください。
-1. 総合スコア・判定
-2. 観点別評価・理由
-3. 改善のための模範解答・解説
+1. 正解とユーザー解答の正誤判定・総合スコア
+2. 観点別評価および各選択肢・ポイントの解説
+3. 改善のための模範解答・和訳
 `;
 
     try {
