@@ -3,10 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- 強制的にキャッシュを無効化する設定 -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <title>英検準1級 総合対策メニュー</title>
   <style>
     :root {
@@ -147,49 +143,44 @@
       measurementId: "G-B7ZPY5QLCC"
     };
 
-    let auth, db;
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
     let currentUser = null;
 
-    try {
-      firebase.initializeApp(firebaseConfig);
-      auth = firebase.auth();
-      db = firebase.firestore();
-
-      auth.onAuthStateChanged((user) => {
-        currentUser = user;
-        const statusEl = document.getElementById("userStatus");
-        const authBtn = document.getElementById("authBtn");
-        
-        if (user) {
-          statusEl.innerText = `👤 ${user.displayName}`;
-          authBtn.innerText = "ログアウト";
-          loadHistory();
-        } else {
-          statusEl.innerText = "未ログイン";
-          authBtn.innerText = "Googleでログイン";
-          document.getElementById("historyList").innerHTML = "";
-        }
-      });
-    } catch(e) {
-      alert("初期設定エラー: " + e.message);
-    }
-
-    // ★ログインボタンが押された時の処理★
+    // ポップアップ方式で直接ログイン実行
     function handleAuthAction() {
-      alert("① ボタンが正常に押されました"); // キャッシュが消えていればこれが最初に出ます
-
       if (currentUser) {
         auth.signOut().then(() => alert("ログアウトしました")).catch(e => alert(e.message));
       } else {
-        try {
-          const provider = new firebase.auth.GoogleAuthProvider();
-          alert("② これからGoogleのログイン画面へ移動します");
-          auth.signInWithRedirect(provider);
-        } catch(e) {
-          alert("ログイン通信エラー: " + e.message);
-        }
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).then((result) => {
+          alert("ログイン成功: " + result.user.displayName);
+        }).catch((error) => {
+          if (error.code === 'auth/popup-blocked') {
+            alert("ブラウザでポップアップがブロックされています。\nアドレスバー付近の指示に従ってポップアップを許可してください。");
+          } else {
+            alert("ログインエラー: " + error.message);
+          }
+        });
       }
     }
+
+    auth.onAuthStateChanged((user) => {
+      currentUser = user;
+      const statusEl = document.getElementById("userStatus");
+      const authBtn = document.getElementById("authBtn");
+      
+      if (user) {
+        statusEl.innerText = `👤 ${user.displayName}`;
+        authBtn.innerText = "ログアウト";
+        loadHistory();
+      } else {
+        statusEl.innerText = "未ログイン";
+        authBtn.innerText = "Googleでログイン";
+        document.getElementById("historyList").innerHTML = "";
+      }
+    });
 
     function saveToFirestore(mode, topicText, userInput, resultText) {
       if (!currentUser) return;
