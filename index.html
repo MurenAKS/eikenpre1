@@ -127,7 +127,7 @@
     .history-item { background: #f9f9f9; padding: 12px; margin-top: 8px; border-radius: 4px; border-left: 3px solid #ccc; font-size: 0.9rem; }
   </style>
 
-  <!-- Firebase & Google Identity SDK -->
+  <!-- Firebase & Google SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -179,7 +179,7 @@
     function initGoogleButton() {
       if (typeof google !== 'undefined' && google.accounts) {
         google.accounts.id.initialize({
-          client_id: "93308031701-a4vbc5a5s4v33g39b626e2e5055b8549.apps.googleusercontent.com", // Firebase自動生成クライアントID
+          client_id: "93308031701-6j3852faig85pbfmj0rr84b0k9i3k7uq.apps.googleusercontent.com",
           callback: handleCredentialResponse
         });
         google.accounts.id.renderButton(
@@ -187,7 +187,7 @@
           { theme: "outline", size: "medium" }
         );
       } else {
-        setTimeout(initGoogleButton, 500);
+        setTimeout(initGoogleButton, 300);
       }
     }
 
