@@ -215,7 +215,7 @@
   </div>
 </div>
 
-<!-- Firebase SDK (順序制御スクリプト) -->
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -243,40 +243,48 @@
         db = firebase.firestore();
 
         auth.onAuthStateChanged((user) => {
-          currentUser = user;
-          const statusEl = document.getElementById("userStatus");
-          const authBtn = document.getElementById("authBtn");
-          
-          if (user) {
-            statusEl.innerText = `👤 ${user.displayName}`;
-            authBtn.innerText = "ログアウト";
-            loadHistory();
-          } else {
-            statusEl.innerText = "未ログイン";
-            authBtn.innerText = "Googleでログイン";
-            document.getElementById("historyList").innerHTML = "";
-          }
+          updateUserUI(user);
         });
-      } else {
-        alert("Firebaseの読み込みに失敗しました。通信環境をご確認ください。");
       }
     } catch (e) {
       alert("初期化エラー: " + e.message);
     }
   });
 
+  function updateUserUI(user) {
+    currentUser = user;
+    const statusEl = document.getElementById("userStatus");
+    const authBtn = document.getElementById("authBtn");
+    
+    if (user) {
+      statusEl.innerText = `👤 ${user.displayName || user.email}`;
+      authBtn.innerText = "ログアウト";
+      loadHistory();
+    } else {
+      statusEl.innerText = "未ログイン";
+      authBtn.innerText = "Googleでログイン";
+      document.getElementById("historyList").innerHTML = "";
+    }
+  }
+
   function handleAuthAction() {
     if (!auth) {
-      alert("認証機能の準備中です。数秒待ってから再試行してください。");
+      alert("認証機能を初期化中です。もう一度お試しください。");
       return;
     }
 
     if (currentUser) {
-      auth.signOut().then(() => alert("ログアウトしました")).catch(e => alert(e.message));
+      auth.signOut().then(() => {
+        updateUserUI(null);
+        alert("ログアウトしました");
+      }).catch(e => alert("ログアウトエラー: " + e.message));
     } else {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch((error) => {
-        alert("ログインエラー: " + error.message);
+      auth.signInWithPopup(provider).then((result) => {
+        updateUserUI(result.user);
+        alert("ログインに成功しました: " + (result.user.displayName || result.user.email));
+      }).catch((error) => {
+        alert("ログイン失敗 (" + error.code + "):\n" + error.message);
       });
     }
   }
@@ -306,7 +314,7 @@
           item.innerHTML = `<strong>[${data.mode}]</strong> ${dateStr}<br>お題: ${data.topicText.substring(0, 40)}...`;
           listEl.appendChild(item);
         });
-      });
+      }).catch(e => console.error("履歴取得エラー:", e));
   }
 
   let currentMode = '';
