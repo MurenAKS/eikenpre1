@@ -130,7 +130,7 @@
   <!-- Firebase SDK Modules -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, query, orderBy, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -148,28 +148,24 @@
     const db = getFirestore(app);
     window.currentUser = null;
 
-    // ログイン処理（ポップアップ方式＋エラー補捉）
-    async function doLogin() {
-      alert("ログイン処理を開始します...");
+    // 画面遷移（リダイレクト）後のログイン結果を受け取る
+    getRedirectResult(auth).catch((error) => {
+      if (error && error.code) {
+        alert("【ログインエラー】" + error.message);
+      }
+    });
+
+    // ログイン処理（画面遷移方式）
+    function doLogin() {
       const provider = new GoogleAuthProvider();
-      try {
-        const result = await signInWithPopup(auth, provider);
-        alert("ログイン成功: " + result.user.displayName);
-      } catch (error) {
-        alert("【ログインエラー詳細】\nコード: " + error.code + "\nメッセージ: " + error.message);
-      }
+      signInWithRedirect(auth, provider);
     }
 
-    async function doLogout() {
-      try {
-        await signOut(auth);
-        alert("ログアウト完了");
-      } catch (error) {
-        alert("ログアウトエラー: " + error.message);
-      }
+    function doLogout() {
+      signOut(auth).catch((error) => alert("ログアウトエラー: " + error.message));
     }
 
-    // 認証状態の監視とボタン紐付け
+    // ログイン状態の監視
     onAuthStateChanged(auth, (user) => {
       window.currentUser = user;
       const statusEl = document.getElementById("userStatus");
