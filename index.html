@@ -127,11 +127,10 @@
     .history-item { background: #f9f9f9; padding: 12px; margin-top: 8px; border-radius: 4px; border-left: 3px solid #ccc; font-size: 0.9rem; }
   </style>
 
-  <!-- Firebase & Google SDK -->
+  <!-- Firebase Compat SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <script>
     const firebaseConfig = {
@@ -144,68 +143,42 @@
       measurementId: "G-B7ZPY5QLCC"
     };
 
-    let auth, db, currentUser = null;
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    let currentUser = null;
 
-    window.onload = function() {
-      try {
-        firebase.initializeApp(firebaseConfig);
-        auth = firebase.auth();
-        db = firebase.firestore();
-
-        auth.onAuthStateChanged((user) => {
-          currentUser = user;
-          const statusEl = document.getElementById("userStatus");
-          const logoutBtn = document.getElementById("logoutBtn");
-          const gBtnContainer = document.getElementById("gBtnContainer");
-
-          if (user) {
-            statusEl.innerText = `👤 ${user.displayName || user.email}`;
-            logoutBtn.classList.remove("hidden");
-            gBtnContainer.classList.add("hidden");
-            loadHistory();
-          } else {
-            statusEl.innerText = "未ログイン";
-            logoutBtn.classList.add("hidden");
-            gBtnContainer.classList.remove("hidden");
-            document.getElementById("historyList").innerHTML = "";
-            initGoogleButton();
-          }
-        });
-      } catch(e) {
-        alert("初期化エラー: " + e.message);
-      }
-    };
-
-    function initGoogleButton() {
-      if (typeof google !== 'undefined' && google.accounts) {
-        google.accounts.id.initialize({
-          client_id: "93308031701-6j3852faig85pbfmj0rr84b0k9i3k7uq.apps.googleusercontent.com",
-          callback: handleCredentialResponse
-        });
-        google.accounts.id.renderButton(
-          document.getElementById("gBtnContainer"),
-          { theme: "outline", size: "medium" }
-        );
+    auth.onAuthStateChanged((user) => {
+      currentUser = user;
+      const statusEl = document.getElementById("userStatus");
+      const authBtn = document.getElementById("authBtn");
+      
+      if (user) {
+        statusEl.innerText = `👤 ${user.displayName || user.email}`;
+        authBtn.innerText = "ログアウト";
+        loadHistory();
       } else {
-        setTimeout(initGoogleButton, 300);
+        statusEl.innerText = "未ログイン";
+        authBtn.innerText = "Googleでログイン";
+        document.getElementById("historyList").innerHTML = "";
       }
-    }
+    });
 
-    function handleCredentialResponse(response) {
-      const credential = firebase.auth.GoogleAuthProvider.credential(response.credential);
-      auth.signInWithCredential(credential).then((result) => {
-        alert("ログイン完了: " + result.user.displayName);
-      }).catch((error) => {
-        alert("認証エラー: " + error.message);
-      });
-    }
-
-    function handleLogout() {
-      auth.signOut().then(() => alert("ログアウトしました")).catch(e => alert(e.message));
+    function handleAuthAction() {
+      if (currentUser) {
+        auth.signOut().then(() => alert("ログアウトしました")).catch(e => alert(e.message));
+      } else {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).then((result) => {
+          alert("ログイン成功: " + result.user.displayName);
+        }).catch((error) => {
+          alert("認証エラー (" + error.code + "): " + error.message);
+        });
+      }
     }
 
     function saveToFirestore(mode, topicText, userInput, resultText) {
-      if (!currentUser || !db) return;
+      if (!currentUser) return;
       db.collection("users").doc(currentUser.uid).collection("history").add({
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         mode: mode,
@@ -216,7 +189,7 @@
     }
 
     function loadHistory() {
-      if (!currentUser || !db) return;
+      if (!currentUser) return;
       db.collection("users").doc(currentUser.uid).collection("history")
         .orderBy("timestamp", "desc").get().then((querySnapshot) => {
           const listEl = document.getElementById("historyList");
@@ -241,8 +214,7 @@
     <div style="display: flex; align-items: center; gap: 10px;">
       <input type="password" id="apiKey" class="api-key-input" placeholder="Gemini API Keyを入力">
       <span id="userStatus" style="font-size:0.9rem; font-weight:bold;">未ログイン</span>
-      <div id="gBtnContainer"></div>
-      <button id="logoutBtn" class="btn hidden" style="width:auto; padding:6px 12px; font-size:0.85rem; background-color:#666;" onclick="handleLogout()">ログアウト</button>
+      <button id="authBtn" class="btn" style="width:auto; padding:6px 12px; font-size:0.85rem;" onclick="handleAuthAction()">Googleでログイン</button>
     </div>
   </div>
 
