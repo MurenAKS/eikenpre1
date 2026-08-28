@@ -127,7 +127,7 @@
     .history-item { background: #f9f9f9; padding: 12px; margin-top: 8px; border-radius: 4px; border-left: 3px solid #ccc; font-size: 0.9rem; }
   </style>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK (Compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -223,10 +223,9 @@
 </div>
 
 <script>
-  // Firebaseの設定
-  // apiKey には Firebase Console の「プロジェクトの設定 > 全般 > Web アプリ」に表示されるWeb APIキー（AIzaSy...）を指定してください。
+  // Firebase 設定（apiKey の inb を小文字に修正済み）
   const firebaseConfig = {
-    apiKey: "YOUR_FIREBASE_WEB_API_KEY", // ← Firebase Consoleで確認したWeb APIキーに書き換えてください
+    apiKey: "AIzaSyCk8fSvzuL1-inbDBEXFgrqXdXAbWMlov8",
     authDomain: "eiken-pre1-app.firebaseapp.com",
     projectId: "eiken-pre1-app",
     storageBucket: "eiken-pre1-app.firebasestorage.app",
@@ -235,7 +234,6 @@
     measurementId: "G-B7ZPY5QLCC"
   };
 
-  // 重複初期化防止ガード
   if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
   }
@@ -255,7 +253,7 @@
     if (currentUser) {
       auth.signOut().then(() => {
         showLog("ログアウトしました");
-      });
+      }).catch(e => showLog("ログアウトエラー: " + e.message));
     } else {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider).then((result) => {
@@ -331,7 +329,6 @@
   }
 
   async function callGemini(promptText, apiKey) {
-    // 正しい標準モデル名 (gemini-1.5-flash または gemini-2.0-flash)
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
     const response = await fetch(url, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
