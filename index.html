@@ -138,7 +138,7 @@
   <div class="header">
     <h2>英検準1級 総合対策メニュー</h2>
     <div style="display: flex; align-items: center; gap: 10px;">
-      <input type="password" id="apiKey" class="api-key-input" placeholder="Gemini API Keyを入力">
+      <input type="password" id="apiKey" class="api-key-input" placeholder="AI用 Gemini API Keyを入力">
       <span id="userStatus" style="font-size:0.9rem; font-weight:bold;">未ログイン</span>
       <button id="authBtn" class="btn" style="width:auto; padding:6px 12px; font-size:0.85rem;" onclick="loginDirect()">Googleでログイン</button>
     </div>
@@ -223,7 +223,7 @@
 </div>
 
 <script>
-  // Firebase 設定（apiKey の inb を小文字に修正済み）
+  // Firebase 設定
   const firebaseConfig = {
     apiKey: "AIzaSyCk8fSvzuL1-inbDBEXFgrqXdXAbWMlov8",
     authDomain: "eiken-pre1-app.firebaseapp.com",
@@ -329,10 +329,14 @@
   }
 
   async function callGemini(promptText, apiKey) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey.trim()}`;
     const response = await fetch(url, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: systemInstructions }] }, contents: [{ parts: [{ text: promptText }] }] })
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        systemInstruction: { parts: [{ text: systemInstructions }] }, 
+        contents: [{ parts: [{ text: promptText }] }] 
+      })
     });
     if (!response.ok) {
       const errData = await response.json();
