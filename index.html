@@ -315,7 +315,7 @@
   let currentPromptText = '';
   const systemInstructions = `あなたは英検準1級（CEFR B2）の採点・指導エキスパートです。ユーザーの入力に対して、評価・アドバイス・解説・模範解答を丁寧な日本語で分かりやすく出力してください。`;
 
-  // 音声読み上げ機能 (Web Speech API) - 記号除去フィルタ付き
+  // 音声読み上げ機能 (Web Speech API) - 記号完全除去フィルタ
   function playAudio(onEndCallback) {
     if (!('speechSynthesis' in window)) {
       alert('お使いのブラウザは音声読み上げに対応していません。');
@@ -324,10 +324,12 @@
     }
     window.speechSynthesis.cancel(); // 既存の再生を停止
 
-    // # や * などのマークダウン記号・装飾記号を除去して読み上げる
+    // 読み上げ用のテキストから #, *, `, _, ~, 箇条書き記号等をすべて完全に削除・置換
     let cleanText = currentPromptText
-      .replace(/[#*`_~]/g, '') // # * ` _ ~ などの記号を削除
+      .replace(/#+/g, '') // 見出し用 # を削除
+      .replace(/[*`_~]/g, '') // * ` _ ~ などの装飾記号を削除
       .replace(/^\s*[-+]\s+/gm, '') // リスト箇条書き記号を除去
+      .replace(/\n+/g, ' ') // 改行をスペースに変換
       .trim();
 
     const uttr = new SpeechSynthesisUtterance(cleanText);
