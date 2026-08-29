@@ -89,6 +89,7 @@
     }
 
     .btn-secondary { background-color: var(--secondary-color); }
+    .btn-audio { background-color: #0288D1; margin-bottom: 10px; }
     .btn:hover { opacity: 0.9; }
 
     .test-area, .result-area, .history-area {
@@ -202,7 +203,9 @@
     <div class="topic-box">
       <strong>【今回のお題 / 問題文】</strong><br>
       <span id="topicLoading" class="loading hidden">新しい問題をAIが生成中...</span>
-      <div id="topicText">問題を取得中...</div>
+      <button id="audioBtn" class="btn btn-audio hidden" onclick="playAudio()" style="margin-top:10px;">🔊 音声を聴く</button>
+      <div id="audioStatus" class="loading hidden" style="margin-top:5px;">🎵 音声を再生中...（終了後に問題が表示されます）</div>
+      <div id="topicText" style="margin-top:10px;">問題を取得中...</div>
     </div>
 
     <textarea id="userInput" placeholder="ここにあなたの解答または英文を入力してください..."></textarea>
@@ -312,6 +315,24 @@
   let currentPromptText = '';
   const systemInstructions = `あなたは英検準1級（CEFR B2）の採点・指導エキスパートです。ユーザーの入力に対して、評価・アドバイス・解説・模範解答を丁寧な日本語で分かりやすく出力してください。`;
 
+  // 音声読み上げ機能 (Web Speech API)
+  function playAudio(onEndCallback) {
+    if (!('speechSynthesis' in window)) {
+      alert('お使いのブラウザは音声読み上げに対応していません。');
+      if (onEndCallback) onEndCallback();
+      return;
+    }
+    window.speechSynthesis.cancel(); // 既存の再生を停止
+    const uttr = new SpeechSynthesisUtterance(currentPromptText);
+    uttr.lang = 'en-US';
+    uttr.rate = 0.9; // やや聞き取りやすい速度
+    if (onEndCallback) {
+      uttr.onend = onEndCallback;
+      uttr.onerror = onEndCallback;
+    }
+    window.speechSynthesis.speak(uttr);
+  }
+
   async function selectMode(mode) {
     currentMode = mode;
     document.getElementById('testArea').classList.remove('hidden');
@@ -349,10 +370,18 @@
   async function generateNewQuestion() {
     const apiKey = document.getElementById('apiKey').value;
     if (!apiKey) return alert('最初に右上へ Gemini API Key を入力してください。');
+    
+    window.speechSynthesis.cancel();
     const topicTextEl = document.getElementById('topicText');
     const loadingEl = document.getElementById('topicLoading');
+    const audioBtn = document.getElementById('audioBtn');
+    const audioStatus = document.getElementById('audioStatus');
+
     topicTextEl.innerText = '';
     loadingEl.classList.remove('hidden');
+    audioBtn.classList.add('hidden');
+    audioStatus.classList.add('hidden');
+
     const prompts = {
       'vocab': '英検準1級レベルの短文空所補充問題（語彙）を1問作成してください。問題文と4つの選択肢(1-4)のみを出力し、正解・和訳・解説は一切出力しないでください。',
       'reading': '英検準1級レベルの長文読解パッセージ1つと設問を作成してください。正解や解説は出力しないでください。',
@@ -362,13 +391,32 @@
       'shadowing': 'シャドーイング練習用の英検準1級レベルの英文（50語程度）を1つ提示してください。解説は出力しないでください。',
       'speaking_full': '英検準1級二次試験の4コマ漫画状況設定（No.1）および関連する質問（No.2〜4）のみを作成してください。解答例は出力しないでください。'
     };
+
     try {
       currentPromptText = await callGemini(prompts[currentMode], apiKey);
-      topicTextEl.innerText = currentPromptText;
-    } catch (error) {
-      topicTextEl.innerText = 'エラーが発生しました: ' + error.message;
-    } finally {
       loadingEl.classList.add('hidden');
+
+      // リスニング・スピーキング（⑤, ⑥, ⑦）の場合の読み上げ・表示処理
+      if (['listening', 'shadowing', 'speaking_full'].includes(currentMode)) {
+        audioBtn.classList.remove('hidden');
+        audioStatus.classList.remove('hidden');
+        topicTextEl.classList.add('hidden'); // まず本文を隠す
+
+        // 音声再生を開始し、終了後に本文を表示
+        playAudio(() => {
+          audioStatus.classList.add('hidden');
+          topicTextEl.innerText = currentPromptText;
+          topicTextEl.classList.remove('hidden');
+        });
+      } else {
+        // 筆記・読解問題（①〜④）は通常表示
+        topicTextEl.innerText = currentPromptText;
+        topicTextEl.classList.remove('hidden');
+      }
+    } catch (error) {
+      loadingEl.classList.add('hidden');
+      topicTextEl.classList.remove('hidden');
+      topicTextEl.innerText = 'エラーが発生しました: ' + error.message;
     }
   }
 
