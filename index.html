@@ -228,7 +228,7 @@
       <div id="topicText" style="margin-top:10px;">問題を取得中...</div>
     </div>
 
-    <!-- 要件2: 選択肢用ラジオボタンUI表示エリア -->
+    <!-- 選択肢用ラジオボタンUI表示エリア -->
     <div id="radioChoicesArea" class="hidden"></div>
 
     <textarea id="userInput" placeholder="ここにあなたの解答または英文を入力してください..."></textarea>
@@ -371,7 +371,7 @@
     const testArea = document.getElementById('testArea');
     testArea.classList.remove('hidden');
     
-    // 要件1: モード選択ボタン（スタート）を押した際にテストエリアへスムーズスクロール
+    // モード選択ボタン（スタート）を押した際にテストエリアへスムーズスクロール
     testArea.scrollIntoView({ behavior: 'smooth' });
 
     document.getElementById('resultArea').classList.add('hidden');
@@ -394,7 +394,8 @@
   }
 
   async function callGemini(promptText, apiKey) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey.trim()}`;
+    // 安定性と速度に優れた gemini-3.5-flash-lite に変更
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey.trim()}`;
     const response = await fetch(url, {
       method: 'POST', 
       headers: { 'Content-Type': 'application/json' },
@@ -411,12 +412,11 @@
     return data.candidates[0].content.parts[0].text;
   }
 
-  // 要件2: 選択肢判定およびラジオボタンUI生成処理
+  // 選択肢判定およびラジオボタンUI生成処理
   function checkAndRenderRadioChoices(text) {
     const radioArea = document.getElementById('radioChoicesArea');
     radioArea.innerHTML = '';
     
-    // 「1.」「2.」「3.」「4.」または「(1)」「(2)」「(3)」「(4)」などがテキストに含まれているか判定
     const hasChoices = /(?:^|\s)(?:1[.)]|2[.)]|3[.)]|4[.)]|\(1\)|\(2\)|\(3\)|\(4\))/m.test(text);
 
     if (hasChoices && (currentMode === 'vocab' || currentMode === 'listening' || currentMode === 'reading')) {
@@ -503,7 +503,7 @@
         checkAndRenderRadioChoices(currentPromptText);
       }
 
-      // 要件1: 問題の生成が完了した際にもテストエリアへ自動的にスムーズスクロール
+      // 問題の生成が完了した際にもテストエリアへ自動的にスムーズスクロール
       document.getElementById('testArea').scrollIntoView({ behavior: 'smooth' });
 
     } catch (error) {
@@ -513,7 +513,7 @@
     }
   }
 
-  // ストリーミング送信処理
+  // ストリーミング送信処理（gemini-3.5-flash-lite に変更）
   async function submitToGeminiStream() {
     const apiKey = document.getElementById('apiKey').value;
     if (!apiKey) return alert('Gemini API Keyを入力してください。');
@@ -530,7 +530,8 @@
 
     const evalPrompt = `【問題】\n${currentPromptText}\n\n【ユーザーの解答】\n${userInput}\n\n【指示】\n上記解答を英検準1級の基準で詳細に採点・添削・解説してください。\n1. 正解とユーザー解答の正誤判定・総合スコア\n2. 観点別評価および各選択肢・ポイントの解説\n3. 改善のための模範解答・和訳`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?key=${apiKey.trim()}&alt=sse`;
+    // 安定性と速度に優れた gemini-3.5-flash-lite に変更
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${apiKey.trim()}&alt=sse`;
 
     try {
       const response = await fetch(url, {
