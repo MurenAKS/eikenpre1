@@ -126,6 +126,26 @@
     .loading { color: var(--secondary-color); font-style: italic; font-weight: bold; }
     .box { background: #f9f9f9; padding: 15px; border-left: 4px solid var(--primary-color); margin-top: 10px; white-space: pre-wrap; line-height: 1.6; }
     .history-item { background: #f9f9f9; padding: 12px; margin-top: 8px; border-radius: 4px; border-left: 3px solid #ccc; font-size: 0.9rem; }
+    
+    /* 選択肢ラジオボタン用スタイル */
+    .radio-choices-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin: 12px 0 5px 0;
+      padding: 10px;
+      background: #fdfdfd;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+    }
+    .radio-choice-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #334155;
+    }
   </style>
 
   <!-- Firebase SDK (Compat) -->
@@ -207,6 +227,9 @@
       <div id="audioStatus" class="loading hidden" style="margin-top:5px;">🎵 音声を再生中...（終了後に問題が表示されます）</div>
       <div id="topicText" style="margin-top:10px;">問題を取得中...</div>
     </div>
+
+    <!-- 要件2: 選択肢用ラジオボタンUI表示エリア -->
+    <div id="radioChoicesArea" class="hidden"></div>
 
     <textarea id="userInput" placeholder="ここにあなたの解答または英文を入力してください..."></textarea>
     <button class="btn" onclick="submitToGeminiStream()" style="margin-top:15px; font-size:1.1rem; padding:12px;">送信して判定・解説を表示</button>
@@ -345,10 +368,21 @@
 
   async function selectMode(mode) {
     currentMode = mode;
-    document.getElementById('testArea').classList.remove('hidden');
+    const testArea = document.getElementById('testArea');
+    testArea.classList.remove('hidden');
+    
+    // 要件1: モード選択ボタン（スタート）を押した際にテストエリアへスムーズスクロール
+    testArea.scrollIntoView({ behavior: 'smooth' });
+
     document.getElementById('resultArea').classList.add('hidden');
     document.getElementById('userInput').value = '';
     document.getElementById('resultContent').innerText = '';
+    
+    // ラジオボタンエリアも初期化・非表示
+    const radioArea = document.getElementById('radioChoicesArea');
+    radioArea.innerHTML = '';
+    radioArea.classList.add('hidden');
+
     const titles = {
       'vocab': '① 短文空所補充 (語彙)', 'reading': '② 長文空所補充・内容一致 (読解)',
       'writing_opinion': '③ 意見論述 (Writing)', 'writing_summary': '④ 要約問題 (Writing)',
@@ -377,6 +411,49 @@
     return data.candidates[0].content.parts[0].text;
   }
 
+  // 要件2: 選択肢判定およびラジオボタンUI生成処理
+  function checkAndRenderRadioChoices(text) {
+    const radioArea = document.getElementById('radioChoicesArea');
+    radioArea.innerHTML = '';
+    
+    // 「1.」「2.」「3.」「4.」または「(1)」「(2)」「(3)」「(4)」などがテキストに含まれているか判定
+    const hasChoices = /(?:^|\s)(?:1[.)]|2[.)]|3[.)]|4[.)]|\(1\)|\(2\)|\(3\)|\(4\))/m.test(text);
+
+    if (hasChoices && (currentMode === 'vocab' || currentMode === 'listening' || currentMode === 'reading')) {
+      const container = document.createElement('div');
+      container.className = 'radio-choices-container';
+      
+      const titleLabel = document.createElement('div');
+      titleLabel.style.width = '100%';
+      titleLabel.style.fontSize = '0.85rem';
+      titleLabel.style.color = '#64748b';
+      titleLabel.innerHTML = '💡 選択肢を選択すると解答欄に自動入力されます：';
+      container.appendChild(titleLabel);
+
+      for (let i = 1; i <= 4; i++) {
+        const label = document.createElement('label');
+        label.className = 'radio-choice-label';
+        
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'quizChoice';
+        radio.value = i;
+        radio.onchange = () => {
+          document.getElementById('userInput').value = `${i}`;
+        };
+
+        label.appendChild(radio);
+        label.appendChild(document.createTextNode(` 選択肢 ${i} `));
+        container.appendChild(label);
+      }
+
+      radioArea.appendChild(container);
+      radioArea.classList.remove('hidden');
+    } else {
+      radioArea.classList.add('hidden');
+    }
+  }
+
   async function generateNewQuestion() {
     const apiKey = document.getElementById('apiKey').value;
     if (!apiKey) return alert('最初に右上へ Gemini API Key を入力してください。');
@@ -386,11 +463,14 @@
     const loadingEl = document.getElementById('topicLoading');
     const audioBtn = document.getElementById('audioBtn');
     const audioStatus = document.getElementById('audioStatus');
+    const radioArea = document.getElementById('radioChoicesArea');
 
     topicTextEl.innerText = '';
     loadingEl.classList.remove('hidden');
     audioBtn.classList.add('hidden');
     audioStatus.classList.add('hidden');
+    radioArea.innerHTML = '';
+    radioArea.classList.add('hidden');
 
     const prompts = {
       'vocab': '英検準1級レベルの短文空所補充問題（語彙）を1問作成してください。問題文と4つの選択肢(1-4)のみを出力し、正解・和訳・解説は一切出力しないでください。',
@@ -415,11 +495,17 @@
           audioStatus.classList.add('hidden');
           topicTextEl.innerText = currentPromptText;
           topicTextEl.classList.remove('hidden');
+          checkAndRenderRadioChoices(currentPromptText);
         });
       } else {
         topicTextEl.innerText = currentPromptText;
         topicTextEl.classList.remove('hidden');
+        checkAndRenderRadioChoices(currentPromptText);
       }
+
+      // 要件1: 問題の生成が完了した際にもテストエリアへ自動的にスムーズスクロール
+      document.getElementById('testArea').scrollIntoView({ behavior: 'smooth' });
+
     } catch (error) {
       loadingEl.classList.add('hidden');
       topicTextEl.classList.remove('hidden');
@@ -427,7 +513,7 @@
     }
   }
 
-  // ストリーミング送信処理（ご指定通りに書き換え・修正済み）
+  // ストリーミング送信処理
   async function submitToGeminiStream() {
     const apiKey = document.getElementById('apiKey').value;
     if (!apiKey) return alert('Gemini API Keyを入力してください。');
@@ -507,4 +593,4 @@
 </script>
 
 </body>
-                            </html>
+</html>
