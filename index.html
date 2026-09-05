@@ -1,268 +1,503 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI採点・解説システム</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Marked.js for Markdown parsing -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>英検準1級 総合対策メニュー</title>
+  <style>
+    :root {
+      --primary-color: #00875A;
+      --secondary-color: #0066CC;
+      --bg-color: #F4F5F7;
+      --card-bg: #FFFFFF;
+    }
+
+    body {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: var(--card-bg);
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .api-key-input {
+      padding: 8px;
+      width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .category-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #444;
+      margin: 25px 0 10px 0;
+      padding-left: 10px;
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 15px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 18px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-top: 4px solid var(--primary-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card-speaking { border-top-color: #E65100; }
+    .card-listening { border-top-color: #0288D1; }
+
+    .card h3 { margin: 0 0 8px 0; font-size: 1.05rem; }
+    .card p { margin: 0 0 15px 0; font-size: 0.85rem; color: #666; }
+
+    .btn {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+    }
+
+    .btn-secondary { background-color: var(--secondary-color); }
+    .btn-audio { background-color: #0288D1; margin-bottom: 10px; }
+    .btn:hover { opacity: 0.9; }
+
+    .test-area, .result-area, .history-area {
+      background: var(--card-bg);
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      margin-top: 20px;
+    }
+
+    .topic-box {
+      background: #EBF3FB;
+      border-left: 5px solid var(--secondary-color);
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 4px;
+      font-size: 1rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    textarea {
+      width: 100%;
+      height: 140px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      margin-top: 10px;
+      font-size: 1rem;
+    }
+
+    .hidden { display: none; }
+    .loading { color: var(--secondary-color); font-style: italic; font-weight: bold; }
+    .box { background: #f9f9f9; padding: 15px; border-left: 4px solid var(--primary-color); margin-top: 10px; white-space: pre-wrap; line-height: 1.6; }
+    .history-item { background: #f9f9f9; padding: 12px; margin-top: 8px; border-radius: 4px; border-left: 3px solid #ccc; font-size: 0.9rem; }
+  </style>
+
+  <!-- Firebase SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 min-p-4 flex flex-col items-center min-h-screen">
+<body>
 
-    <div class="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 my-8">
-        <h1 class="text-2xl font-bold mb-6 text-center text-blue-600">AI採点・解説システム</h1>
+<div class="container">
+  <div class="header">
+    <h2>英検準1級 総合対策メニュー</h2>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <input type="password" id="apiKey" class="api-key-input" placeholder="AI用 Gemini API Keyを入力">
+      <span id="userStatus" style="font-size:0.9rem; font-weight:bold;">未ログイン</span>
+      <button id="authBtn" class="btn" style="width:auto; padding:6px 12px; font-size:0.85rem;" onclick="loginDirect()">Googleでログイン</button>
+    </div>
+  </div>
 
-        <!-- APIキー入力 -->
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-slate-700 mb-1" for="apiKey">Gemini API Key</label>
-            <input type="password" id="apiKey" placeholder="AIzaSy..." class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
+  <div id="debugLog" style="color:red; font-size:0.85rem; padding:10px; background:#fff; border:1px solid #f00; margin-bottom:15px;" class="hidden"></div>
 
-        <!-- 問題文入力 -->
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-slate-700 mb-1" for="question">問題文</label>
-            <textarea id="question" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="例: 日本の首都はどこですか？また、その特徴を簡潔に述べよ。"></textarea>
-        </div>
+  <div class="category-title">📄 一次試験・筆記対策</div>
+  <div class="card-grid">
+    <div class="card">
+      <h3>① 短文空所補充 (語彙)</h3>
+      <p>準1級頻出語彙・熟語の4択問題トレーニング</p>
+      <button class="btn" onclick="selectMode('vocab')">スタート</button>
+    </div>
+    <div class="card">
+      <h3>② 長文空所補充・内容一致 (読解)</h3>
+      <p>アカデミックな長文の展開把握・SVOC精読</p>
+      <button class="btn" onclick="selectMode('reading')">スタート</button>
+    </div>
+    <div class="card">
+      <h3>③ 意見論述 (Writing)</h3>
+      <p>指定トピックに対するエッセイ添削（16点満点）</p>
+      <button class="btn" onclick="selectMode('writing_opinion')">スタート</button>
+    </div>
+    <div class="card">
+      <h3>④ 要約問題 (Writing)</h3>
+      <p>長文要約（60-70語）の論理構造・パラフレーズチェック</p>
+      <button class="btn" onclick="selectMode('writing_summary')">スタート</button>
+    </div>
+  </div>
 
-        <!-- 解答入力 -->
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-slate-700 mb-1" for="answer">あなたの解答</label>
-            <textarea id="answer" rows="4" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="例: 東京です。人口が集中しており経済の中心地です。"></textarea>
-        </div>
+  <div class="category-title">🎧 一次試験・リスニング</div>
+  <div class="card-grid">
+    <div class="card card-listening">
+      <h3>⑤ 会話・文・Real-Life</h3>
+      <p>Part1〜3演習とスクリプト聴解ポイント解説</p>
+      <button class="btn" onclick="selectMode('listening')">スタート</button>
+    </div>
+    <div class="card card-listening">
+      <h3>⑥ シャドーイング・AI解説</h3>
+      <p>音変化（リエゾン）解説と音声トレーニング</p>
+      <button class="btn" onclick="selectMode('shadowing')">スタート</button>
+    </div>
+  </div>
 
-        <!-- 採点ボタン -->
-        <button id="evaluateBtn" onclick="startEvaluation()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition font-medium">
-            AIに採点・解説を依頼する
-        </button>
+  <div class="category-title">🗣️ 二次試験・面接対策</div>
+  <div class="card-grid">
+    <div class="card card-speaking" style="grid-column: 1 / -1;">
+      <h3>⑦ 4コマナレーション ＆ Q&Aシミュレータ (Speaking)</h3>
+      <p>No.1 4コマ漫画描写からNo.2〜4質疑応答までの一貫シミュレーション</p>
+      <button class="btn" style="background-color: #E65100;" onclick="selectMode('speaking_full')">スタート</button>
+    </div>
+  </div>
 
-        <!-- ローディング・状態表示 -->
-        <div id="statusIndicator" class="hidden mt-4 text-center text-blue-500 font-medium animate-pulse">
-            AIが答案を解析・ストリーミング生成中...
-        </div>
-
-        <!-- 結果表示エリア -->
-        <div id="resultContainer" class="hidden mt-6 border-t pt-6">
-            <h2 class="text-xl font-semibold mb-3 text-slate-800">採点結果・解説</h2>
-            <div id="resultContent" class="prose max-w-none bg-slate-50 p-4 rounded-md border border-slate-200 text-slate-700 leading-relaxed"></div>
-            
-            <!-- 音声読み上げボタン -->
-            <div class="mt-4 flex gap-3">
-                <button id="speakBtn" onclick="toggleSpeech()" class="bg-emerald-600 text-white py-2 px-4 rounded-md hover:bg-emerald-700 transition text-sm font-medium">
-                    音声読み上げ
-                </button>
-                <button id="saveFirebaseBtn" onclick="saveToFirebase()" class="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition text-sm font-medium">
-                    Firebaseに保存
-                </button>
-            </div>
-        </div>
+  <div id="testArea" class="test-area hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3 id="modeTitle" style="margin:0;">テスト</h3>
+      <button class="btn btn-secondary" style="width:auto; padding:8px 15px;" onclick="generateNewQuestion()">🔄 別の問題に更新する</button>
+    </div>
+    
+    <div class="topic-box">
+      <strong>【今回のお題 / 問題文】</strong><br>
+      <span id="topicLoading" class="loading hidden">新しい問題をAIが生成中...</span>
+      <button id="audioBtn" class="btn btn-audio hidden" onclick="playAudio()" style="margin-top:10px;">🔊 音声を聴く</button>
+      <div id="audioStatus" class="loading hidden" style="margin-top:5px;">🎵 音声を再生中...（終了後に問題が表示されます）</div>
+      <div id="topicText" style="margin-top:10px;">問題を取得中...</div>
     </div>
 
-    <!-- Firebase SDKs (Compat versions for simple integration) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <textarea id="userInput" placeholder="ここにあなたの解答または英文を入力してください..."></textarea>
+    <button class="btn" onclick="submitToGeminiStream()" style="margin-top:15px; font-size:1.1rem; padding:12px;">送信して判定・解説を表示</button>
+  </div>
 
-    <script>
-        // Firebase 設定プレースホルダー（必要に応じて書き換えてください）
-        const firebaseConfig = {
-            apiKey: "YOUR_FIREBASE_API_KEY",
-            authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
-            projectId: "YOUR_FIREBASE_PROJECT_ID",
-            storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_FIREBASE_MESSAGING_SENDER_ID",
-            appId: "YOUR_FIREBASE_APP_ID"
-        };
+  <div id="resultArea" class="result-area hidden">
+    <h3>採点・分析結果</h3>
+    <div id="loadingText" class="loading hidden">AI分析中...</div>
+    <div id="resultContent" class="box"></div>
+  </div>
 
-        // Firebase初期化の安全なガード
-        let db = null;
-        try {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            db = firebase.firestore();
-        } catch (e) {
-            console.warn("Firebase initialization skipped or failed:", e);
-        }
+  <div class="history-area">
+    <h3>個人学習履歴・進度管理</h3>
+    <p style="font-size:0.85rem; color:#666;">※Googleでログインすると学習履歴が自動保存されます。</p>
+    <div id="historyList"></div>
+  </div>
+</div>
 
-        let rawMarkdownText = ""; // 蓄積された生テキスト
+<script>
+  // Firebase 設定
+  const firebaseConfig = {
+    apiKey: "AIzaSyCk8fSvzuL1-inbDBEXFgrqXdXAbWMlov8",
+    authDomain: "eiken-pre1-app.firebaseapp.com",
+    projectId: "eiken-pre1-app",
+    storageBucket: "eiken-pre1-app.firebasestorage.app",
+    messagingSenderId: "93308031701",
+    appId: "1:93308031701:web:1fd6755ade1c761b74c85c",
+    measurementId: "G-B7ZPY5QLCC"
+  };
 
-        // マークダウン記号除去フィルタ（音声読み上げ用などに利用可能）
-        function cleanMarkdown(text) {
-            return text
-                .replace(/```[\s\S]*?```/g, '') // コードブロック削除
-                .replace(/`([^`]+)`/g, '$1')     // インラインコード削除
-                .replace(/[#*_~`>-]/g, '')       // マークダウンの特殊記号削除
-                .replace(/\n+/g, ' ');           // 改行をスペースに置換
-        }
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
 
-        async function startEvaluation() {
-            const apiKey = document.getElementById('apiKey').value.trim();
-            const question = document.getElementById('question').value.trim();
-            const answer = document.getElementById('answer').value.trim();
-            const statusIndicator = document.getElementById('statusIndicator');
-            const resultContainer = document.getElementById('resultContainer');
-            const resultContent = document.getElementById('resultContent');
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  let currentUser = null;
 
-            if (!apiKey) {
-                alert('Gemini API Keyを入力してください。');
-                return;
-            }
-            if (!question || !answer) {
-                alert('問題文と解答の両方を入力してください。');
-                return;
-            }
+  function showLog(msg) {
+    const logEl = document.getElementById("debugLog");
+    logEl.classList.remove("hidden");
+    logEl.innerText = msg;
+  }
 
-            // UIリセット
-            statusIndicator.classList.remove('hidden');
-            resultContainer.classList.remove('hidden');
-            resultContent.innerHTML = '';
-            rawMarkdownText = "";
+  function loginDirect() {
+    showLog("ログイン処理を実行中...");
+    if (currentUser) {
+      auth.signOut().then(() => {
+        showLog("ログアウトしました");
+      }).catch(e => showLog("ログアウトエラー: " + e.message));
+    } else {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).then((result) => {
+        showLog("ログイン成功: " + result.user.displayName);
+      }).catch((error) => {
+        showLog("エラー発生: [" + error.code + "] " + error.message);
+      });
+    }
+  }
 
-            // プロンプトの構築
-            const promptText = `以下の問題と解答を採点し、点数（100点満点）と詳細な解説、改善点をマークダウン形式で出力してください。\n\n【問題】\n${question}\n\n【解答】\n${answer}`;
+  auth.onAuthStateChanged((user) => {
+    currentUser = user;
+    const statusEl = document.getElementById("userStatus");
+    const authBtn = document.getElementById("authBtn");
+    
+    if (user) {
+      statusEl.innerText = `👤 ${user.displayName || user.email}`;
+      authBtn.innerText = "ログアウト";
+      loadHistory();
+    } else {
+      statusEl.innerText = "未ログイン";
+      authBtn.innerText = "Googleでログイン";
+      document.getElementById("historyList").innerHTML = "";
+    }
+  });
 
-            const requestBody = {
-                contents: [{
-                    parts: [{ text: promptText }]
-                }]
-            };
+  function saveToFirestore(mode, topicText, userInput, resultText) {
+    if (!currentUser || !db) return;
+    db.collection("users").doc(currentUser.uid).collection("history").add({
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      mode: mode,
+      topicText: topicText,
+      userInput: userInput,
+      resultText: resultText
+    }).then(() => loadHistory()).catch(e => showLog("保存エラー: " + e.message));
+  }
 
-            // 要件1: エンドポイントに ?alt=sse を確実に付与
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse&key=${apiKey}`;
+  function loadHistory() {
+    if (!currentUser || !db) return;
+    db.collection("users").doc(currentUser.uid).collection("history")
+      .orderBy("timestamp", "desc").get().then((querySnapshot) => {
+        const listEl = document.getElementById("historyList");
+        listEl.innerHTML = "";
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const dateStr = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString("ja-JP") : "保存中...";
+          const item = document.createElement("div");
+          item.className = "history-item";
+          item.innerHTML = `<strong>[${data.mode}]</strong> ${dateStr}<br>お題: ${data.topicText.substring(0, 40)}...`;
+          listEl.appendChild(item);
+        });
+      });
+  }
 
+  let currentMode = '';
+  let currentPromptText = '';
+
+  const systemInstructions = `あなたは英検準1級（CEFR B2）の採点・指導エキスパートです。
+ユーザーの入力に対して、評価・アドバイス・解説・模範解答を丁寧な日本語で分かりやすく出力してください。
+リスニングやスピーキング用の英文を生成する際は、音声読み上げエンジンが自然なアクセントと間（ポーズ）で発声できるよう、適切なカンマ(,)やピリオド(.)、感嘆符(!)、疑問符(?)を意識して自然な口語英文を作成してください。`;
+
+  function playAudio(onEndCallback) {
+    if (!('speechSynthesis' in window)) {
+      alert('お使いのブラウザは音声読み上げに対応していません。');
+      if (onEndCallback) onEndCallback();
+      return;
+    }
+    window.speechSynthesis.cancel();
+
+    let cleanText = currentPromptText
+      .replace(/#+/g, '')
+      .replace(/[*`_~]/g, '')
+      .replace(/^\s*[-+]\s+/gm, '')
+      .replace(/\n+/g, ' ')
+      .trim();
+
+    const uttr = new SpeechSynthesisUtterance(cleanText);
+    uttr.lang = 'en-US';
+    uttr.rate = 0.9;
+    if (onEndCallback) {
+      uttr.onend = onEndCallback;
+      uttr.onerror = onEndCallback;
+    }
+    window.speechSynthesis.speak(uttr);
+  }
+
+  async function selectMode(mode) {
+    currentMode = mode;
+    document.getElementById('testArea').classList.remove('hidden');
+    document.getElementById('resultArea').classList.add('hidden');
+    document.getElementById('userInput').value = '';
+    document.getElementById('resultContent').innerText = '';
+    const titles = {
+      'vocab': '① 短文空所補充 (語彙)', 'reading': '② 長文空所補充・内容一致 (読解)',
+      'writing_opinion': '③ 意見論述 (Writing)', 'writing_summary': '④ 要約問題 (Writing)',
+      'listening': '⑤ 会話・文・Real-Life (Listening)', 'shadowing': '⑥ シャドーイング・AI解説',
+      'speaking_full': '⑦ 4コマナレーション ＆ Q&Aシミュレータ'
+    };
+    document.getElementById('modeTitle').innerText = titles[mode];
+    await generateNewQuestion();
+  }
+
+  async function callGemini(promptText, apiKey) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey.trim()}`;
+    const response = await fetch(url, {
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        systemInstruction: { parts: [{ text: systemInstructions }] }, 
+        contents: [{ parts: [{ text: promptText }] }] 
+      })
+    });
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error?.message || `API Error (${response.status})`);
+    }
+    const data = await response.json();
+    return data.candidates[0].content.parts[0].text;
+  }
+
+  async function generateNewQuestion() {
+    const apiKey = document.getElementById('apiKey').value;
+    if (!apiKey) return alert('最初に右上へ Gemini API Key を入力してください。');
+    
+    window.speechSynthesis.cancel();
+    const topicTextEl = document.getElementById('topicText');
+    const loadingEl = document.getElementById('topicLoading');
+    const audioBtn = document.getElementById('audioBtn');
+    const audioStatus = document.getElementById('audioStatus');
+
+    topicTextEl.innerText = '';
+    loadingEl.classList.remove('hidden');
+    audioBtn.classList.add('hidden');
+    audioStatus.classList.add('hidden');
+
+    const prompts = {
+      'vocab': '英検準1級レベルの短文空所補充問題（語彙）を1問作成してください。問題文と4つの選択肢(1-4)のみを出力し、正解・和訳・解説は一切出力しないでください。',
+      'reading': '英検準1級レベルの長文読解パッセージ1つと設問を作成してください。正解や解説は出力しないでください。',
+      'writing_opinion': '英検準1級ライティング（意見論述）のTOPIC（お題）を1つ生成してください。模範解答は含めないでください。',
+      'writing_summary': '英検準1級要約問題用の英文（100〜120語程度）を作成してください。要約例は含めないでください。',
+      'listening': '英検準1級リスニング対話文（AとBの会話）と設問、選択肢(1-4)を作成してください。会話文は音声読み上げが自然になるよう、短い文で適切なカンマやピリオドを入れてください。正解や解説は出力しないでください。',
+      'shadowing': 'シャドーイング練習用の英検準1級レベルの自然な英文（50語程度）を1つ提示してください。音声読み上げのリズムが良い文章にし、解説は出力しないでください。',
+      'speaking_full': '英検準1級二次試験の4コマ漫画状況設定（No.1）および関連する質問（No.2〜4）を作成してください。読み上げやすい自然な文章にしてください。解答例は出力しないでください。'
+    };
+
+    try {
+      currentPromptText = await callGemini(prompts[currentMode], apiKey);
+      loadingEl.classList.add('hidden');
+
+      if (['listening', 'shadowing', 'speaking_full'].includes(currentMode)) {
+        audioBtn.classList.remove('hidden');
+        audioStatus.classList.remove('hidden');
+        topicTextEl.classList.add('hidden');
+
+        playAudio(() => {
+          audioStatus.classList.add('hidden');
+          topicTextEl.innerText = currentPromptText;
+          topicTextEl.classList.remove('hidden');
+        });
+      } else {
+        topicTextEl.innerText = currentPromptText;
+        topicTextEl.classList.remove('hidden');
+      }
+    } catch (error) {
+      loadingEl.classList.add('hidden');
+      topicTextEl.classList.remove('hidden');
+      topicTextEl.innerText = 'エラーが発生しました: ' + error.message;
+    }
+  }
+
+  // ストリーミング送信処理
+  async function submitToGeminiStream() {
+    const apiKey = document.getElementById('apiKey').value;
+    if (!apiKey) return alert('Gemini API Keyを入力してください。');
+    const userInput = document.getElementById('userInput').value;
+    if (!userInput) return alert('回答を入力してください。');
+
+    const resultArea = document.getElementById('resultArea');
+    const loadingText = document.getElementById('loadingText');
+    const resultContent = document.getElementById('resultContent');
+
+    resultArea.classList.remove('hidden');
+    loadingText.classList.remove('hidden');
+    resultContent.innerText = '';
+
+    const evalPrompt = `【問題】\n${currentPromptText}\n\n【ユーザーの解答】\n${userInput}\n\n【指示】\n上記解答を英検準1級の基準で詳細に採点・添削・解説してください。\n1. 正解とユーザー解答の正誤判定・総合スコア\n2. 観点別評価および各選択肢・ポイントの解説\n3. 改善のための模範解答・和訳`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?key=${apiKey.trim()}&alt=sse`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemInstructions }] },
+          contents: [{ parts: [{ text: evalPrompt }] }]
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error?.message || `API Error (${response.status})`);
+      }
+
+      loadingText.classList.add('hidden');
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let fullText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const jsonStr = line.replace('data: ', '').trim();
+            if (!jsonStr) continue;
             try {
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.text();
-                    throw new Error(`API Error: ${response.status} ${errorData}`);
-                }
-
-                if (!response.body) {
-                    throw new Error('ReadableStream not supported on response.body.');
-                }
-
-                // 要件2: response.body.getReader() と TextDecoder によるリアルタイムストリーミング処理
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder('utf-8');
-                let buffer = "";
-
-                while (true) {
-                    const { value, done } = await reader.read();
-                    if (done) break;
-
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\n');
-                    
-                    // 最後の不完全な行は次回のチャンクに持ち越す
-                    buffer = lines.pop() || "";
-
-                    for (const line of lines) {
-                        const trimmedLine = line.trim();
-                        if (trimmedLine.startsWith('data:')) {
-                            const jsonStr = trimmedLine.replace(/^data:\s*/, '');
-                            if (jsonStr === '[DONE]') continue;
-
-                            try {
-                                const data = JSON.parse(jsonStr);
-                                const textChunk = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                                
-                                if (textChunk) {
-                                    rawMarkdownText += textChunk;
-                                    // 要件2・3: 即座に画面上の表示用要素に逐次追記し、Markdownパースを適用
-                                    resultContent.innerHTML = marked.parse(rawMarkdownText);
-                                }
-                            } catch (err) {
-                                console.warn('JSON Parse error for line:', jsonStr, err);
-                            }
-                        }
-                    }
-                }
-
-            } catch (error) {
-                console.error(error);
-                resultContent.innerHTML = `<span class="text-red-500">エラーが発生しました: ${error.message}</span>`;
-            } finally {
-                // ローディング非表示
-                statusIndicator.classList.add('hidden');
+              const parsed = JSON.parse(jsonStr);
+              const textChunk = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              fullText += textChunk;
+              resultContent.innerText = fullText;
+            } catch (e) {
+              // パース保留（次のチャンクへ）
             }
+          }
         }
+      }
 
-        // Web Speech API による音声読み上げ機能（既存維持）
-        let isSpeaking = false;
-        function toggleSpeech() {
-            if (!('speechSynthesis' in window)) {
-                alert('お使いのブラウザは音声読み上げに対応していません。');
-                return;
-            }
+      if (typeof saveToFirestore === 'function') {
+        saveToFirestore(currentMode, currentPromptText, userInput, fullText);
+      }
+    } catch (error) {
+      loadingText.classList.add('hidden');
+      resultContent.innerText = 'エラーが発生しました: ' + error.message;
+    }
+  }
+</script>
 
-            const speakBtn = document.getElementById('speakBtn');
-
-            if (isSpeaking) {
-                window.speechSynthesis.cancel();
-                isSpeaking = false;
-                speakBtn.textContent = '音声読み上げ';
-                return;
-            }
-
-            if (!rawMarkdownText) {
-                alert('読み上げるテキストがありません。');
-                return;
-            }
-
-            const cleanText = cleanMarkdown(rawMarkdownText);
-            const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = 'ja-JP';
-
-            utterance.onend = () => {
-                isSpeaking = false;
-                speakBtn.textContent = '音声読み上げ';
-            };
-
-            utterance.onerror = () => {
-                isSpeaking = false;
-                speakBtn.textContent = '音声読み上げ';
-            };
-
-            isSpeaking = true;
-            speakBtn.textContent = '読み上げ停止';
-            window.speechSynthesis.speak(utterance);
-        }
-
-        // Firebase 連携機能（既存維持）
-        async function saveToFirebase() {
-            if (!db) {
-                alert('Firebaseが初期化されていないか、設定が無効です。');
-                return;
-            }
-            const question = document.getElementById('question').value.trim();
-            const answer = document.getElementById('answer').value.trim();
-
-            if (!rawMarkdownText) {
-                alert('保存する採点結果がありません。');
-                return;
-            }
-
-            try {
-                await db.collection('evaluations').add({
-                    question: question,
-                    answer: answer,
-                    evaluation: rawMarkdownText,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                alert('Firebaseに正常に保存されました！');
-            } catch (error) {
-                console.error('Firebase保存エラー:', error);
-                alert('保存に失敗しました: ' + error.message);
-            }
-        }
-    </script>
 </body>
 </html>
