@@ -271,9 +271,10 @@
       <button class="btn btn-secondary" onclick="analyzeLearningProgress()">🤖 AIで得意・苦手分析と学習サポート案を取得する</button>
     </div>
     
+    <!-- 要件1: 分析結果を表示する専用コンテナ要素を確実に配置 -->
     <div id="aiAnalysisArea" class="hidden" style="margin-top: 15px;">
       <h4 style="margin: 0 0 5px 0; color: var(--secondary-color);">📊 AI総合分析レポート</h4>
-      <div id="aiAnalysisResult" class="box"></div>
+      <div id="aiAnalysisResult" class="box hidden"></div>
     </div>
 
     <div id="progressGrid" class="progress-grid">
@@ -349,6 +350,7 @@
       cachedHistoryDocs = [];
       renderProgressCards();
       document.getElementById("aiAnalysisArea").classList.add("hidden");
+      document.getElementById("aiAnalysisResult").classList.add("hidden");
     }
   });
 
@@ -379,7 +381,6 @@
     const gridEl = document.getElementById("progressGrid");
     gridEl.innerHTML = "";
 
-    // モードごとの集計データ作成
     const stats = {};
     Object.keys(modeDefinitions).forEach(m => {
       stats[m] = { count: 0, lastDate: null };
@@ -414,6 +415,7 @@
     });
   }
 
+  // 要件1: AI分析実行関数の実装（APIキー確認、履歴結合、SSEストリーミング、結果表示・スクロール）
   async function analyzeLearningProgress() {
     const apiKey = document.getElementById('apiKey').value;
     if (!apiKey) return alert('最初に右上へ Gemini API Key を入力してください。');
@@ -423,11 +425,12 @@
 
     const aiArea = document.getElementById('aiAnalysisArea');
     const aiResult = document.getElementById('aiAnalysisResult');
+    
     aiArea.classList.remove('hidden');
+    aiResult.classList.remove('hidden');
     aiResult.innerText = 'AIがあなたの学習履歴を分析中...';
     aiArea.scrollIntoView({ behavior: 'smooth' });
 
-    // 履歴データを要約してプロンプトに組み込む
     let historySummary = cachedHistoryDocs.map((h, idx) => {
       return `[履歴 ${idx + 1}] モード: ${h.mode}, 日時: ${h.timestamp ? h.timestamp.toDate().toLocaleString() : '不明'}, お題抜粋: ${h.topicText.substring(0, 50)}..., ユーザー回答抜粋: ${h.userInput.substring(0, 50)}..., 評価・解説抜粋: ${h.resultText.substring(0, 80)}...`;
     }).join('\n');
