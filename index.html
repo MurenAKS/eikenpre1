@@ -364,7 +364,7 @@
     return scoredVoices[0].score > 0 ? scoredVoices[0].voice : englishVoices[0];
   }
 
-  // ⑤ リスニング範囲制御 ＆ 話者名直後の1秒ポーズ挿入対応 playAudio 関数
+  // 画面表示とは完全に分離した、正確な1秒タイマー待機付き playAudio 関数
   function playAudio(onEndCallback) {
     if (!('speechSynthesis' in window)) {
       alert('お使いのブラウザは音声読み上げに対応していません。');
@@ -376,20 +376,19 @@
 
     let textToProcess = currentPromptText || '';
 
-    // 「Listening Section」が含まれている場合、それ以降のテキストのみを抽出
+    // 音声読み上げ時のみ、「Listening Section」以降のテキストを抽出
     const listeningKeywordIndex = textToProcess.indexOf('Listening Section');
     if (listeningKeywordIndex !== -1) {
       textToProcess = textToProcess.substring(listeningKeywordIndex);
     }
 
-    // マークダウン等の記号をクリーンアップ
     let cleanText = textToProcess
       .replace(/#+/g, '')
       .replace(/[*`_~]/g, '')
       .replace(/^\s*[-+]\s+/gm, '')
       .trim();
 
-    // 話者名（Man:, Woman:, A:, B:, Narrator: 等）を検知し、直後に1秒間のポーズを挟むためのセグメント分割
+    // 話者名（Man:, Woman:, A:, B:, Narrator: 等）を検知し、セグメントに分割
     const speakerRegex = /(?:^|\n)\s*(Man|Woman|Narrator|[AB]):/gi;
     let parts = [];
     let lastIndex = 0;
@@ -413,52 +412,61 @@
       parts.push({ type: 'text', content: cleanText });
     }
 
-    let utterances = [];
     const chosenVoice = getBestEnglishVoice(synth);
 
+    // 発話単位（テキストの断片や話者名）の配列を作成
+    let queue = [];
     parts.forEach((p) => {
       if (p.type === 'speaker') {
-        let uttr = new SpeechSynthesisUtterance(p.content);
-        uttr.lang = 'en-US';
-        uttr.rate = 0.9;
-        if (chosenVoice) uttr.voice = chosenVoice;
-        utterances.push(uttr);
-
-        // 話者名直後に1秒間のポーズ（無音）を挿入
-        let pauseUttr = new SpeechSynthesisUtterance("... "); 
-        pauseUttr.lang = 'en-US';
-        pauseUttr.rate = 0.1;
-        pauseUttr.volume = 0;
-        utterances.push(pauseUttr);
+        queue.push({ text: p.content, isSpeaker: true });
       } else {
         let subChunks = p.content.split(/(?<=[.!?])\s+|\n+/);
         subChunks.forEach(sub => {
           if (sub.trim()) {
-            let uttr = new SpeechSynthesisUtterance(sub.trim());
-            uttr.lang = 'en-US';
-            uttr.rate = 0.9;
-            if (chosenVoice) uttr.voice = chosenVoice;
-            utterances.push(uttr);
+            queue.push({ text: sub.trim(), isSpeaker: false });
           }
         });
       }
     });
 
-    if (utterances.length === 0) {
+    if (queue.length === 0) {
       if (onEndCallback) onEndCallback();
       return;
     }
 
-    utterances[utterances.length - 1].onend = () => {
-      if (onEndCallback) onEndCallback();
-    };
-    utterances[utterances.length - 1].onerror = () => {
-      if (onEndCallback) onEndCallback();
-    };
+    let currentIndex = 0;
 
-    utterances.forEach(u => {
-      synth.speak(u);
-    });
+    function processQueue() {
+      if (currentIndex >= queue.length) {
+        if (onEndCallback) onEndCallback();
+        return;
+      }
+
+      let item = queue[currentIndex++];
+      let uttr = new SpeechSynthesisUtterance(item.text);
+      uttr.lang = 'en-US';
+      uttr.rate = 0.9;
+      if (chosenVoice) uttr.voice = chosenVoice;
+
+      uttr.onend = () => {
+        // 発話者名（Man: 等）の直後であれば、正確に1秒間のタイマー待機（setTimeout）を挟む
+        if (item.isSpeaker) {
+          setTimeout(() => {
+            processQueue();
+          }, 1000); // 1000ミリ秒 = 1秒のポーズ
+        } else {
+          processQueue();
+        }
+      };
+
+      uttr.onerror = () => {
+        processQueue();
+      };
+
+      synth.speak(uttr);
+    }
+
+    processQueue();
   }
 
   async function selectMode(mode) {
@@ -580,6 +588,7 @@
       currentPromptText = await callGemini(prompts[currentMode], apiKey);
       loadingEl.classList.add('hidden');
 
+      // 画面上には全体の文章をそのまま出力・表示する
       if (['listening', 'shadowing', 'speaking_full'].includes(currentMode)) {
         audioBtn.classList.remove('hidden');
         audioStatus.classList.remove('hidden');
