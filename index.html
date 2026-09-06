@@ -341,6 +341,7 @@
 ユーザーの入力に対して、評価・アドバイス・解説・模範解答を丁寧な日本語で分かりやすく出力してください。
 リスニングやスピーキング用の英文を生成する際は、音声読み上げエンジンが自然なアクセントと間（ポーズ）で発声できるよう、適切なカンマ(,)やピリオド(.)、感嘆符(!)、疑問符(?)を意識して自然な口語英文を作成してください。`;
 
+  // 高音質英語音声を動的に取得・選択して再生するよう改修された playAudio 関数
   function playAudio(onEndCallback) {
     if (!('speechSynthesis' in window)) {
       alert('お使いのブラウザは音声読み上げに対応していません。');
@@ -359,6 +360,44 @@
     const uttr = new SpeechSynthesisUtterance(cleanText);
     uttr.lang = 'en-US';
     uttr.rate = 0.9;
+
+    // 高品位な英語音声を優先選択するロジック
+    const selectBestVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices || voices.length === 0) return;
+
+      // 英語音声（en-US, en-GB など）をフィルタリング
+      const englishVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+
+      if (englishVoices.length > 0) {
+        // 優先キーワードに基づくスコアリング選択
+        const scoredVoices = englishVoices.map(v => {
+          let score = 0;
+          const name = (v.name || '').toLowerCase();
+          if (name.includes('enhanced')) score += 10;
+          if (name.includes('premium')) score += 10;
+          if (name.includes('natural') || name.includes('online') || name.includes('neural')) score += 8;
+          if (name.includes('google')) score += 6;
+          if (name.includes('siri') || name.includes('samantha') || name.includes('microsoft')) score += 4;
+          if (v.lang.toLowerCase() === 'en-us') score += 2;
+          return { voice: v, score };
+        });
+
+        scoredVoices.sort((a, b) => b.score - a.score);
+        if (scoredVoices[0].score > 0) {
+          uttr.voice = scoredVoices[0].voice;
+        } else {
+          uttr.voice = englishVoices[0];
+        }
+      }
+    };
+
+    // 音声リストが既にロードされている場合は即時適用、そうでない場合は onvoiceschanged を利用
+    selectBestVoice();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = selectBestVoice;
+    }
+
     if (onEndCallback) {
       uttr.onend = onEndCallback;
       uttr.onerror = onEndCallback;
@@ -394,7 +433,6 @@
   }
 
   async function callGemini(promptText, apiKey) {
-    // 安定性と速度に優れた gemini-3.5-flash-lite に変更
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey.trim()}`;
     const response = await fetch(url, {
       method: 'POST', 
@@ -513,7 +551,7 @@
     }
   }
 
-  // ストリーミング送信処理（gemini-3.5-flash-lite に変更）
+  // ストリーミング送信処理
   async function submitToGeminiStream() {
     const apiKey = document.getElementById('apiKey').value;
     if (!apiKey) return alert('Gemini API Keyを入力してください。');
@@ -530,7 +568,6 @@
 
     const evalPrompt = `【問題】\n${currentPromptText}\n\n【ユーザーの解答】\n${userInput}\n\n【指示】\n上記解答を英検準1級の基準で詳細に採点・添削・解説してください。\n1. 正解とユーザー解答の正誤判定・総合スコア\n2. 観点別評価および各選択肢・ポイントの解説\n3. 改善のための模範解答・和訳`;
 
-    // 安定性と速度に優れた gemini-3.5-flash-lite に変更
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${apiKey.trim()}&alt=sse`;
 
     try {
