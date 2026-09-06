@@ -125,7 +125,31 @@
     .hidden { display: none; }
     .loading { color: var(--secondary-color); font-style: italic; font-weight: bold; }
     .box { background: #f9f9f9; padding: 15px; border-left: 4px solid var(--primary-color); margin-top: 10px; white-space: pre-wrap; line-height: 1.6; }
-    .history-item { background: #f9f9f9; padding: 12px; margin-top: 8px; border-radius: 4px; border-left: 3px solid #ccc; font-size: 0.9rem; }
+    
+    .progress-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-top: 15px;
+    }
+    .progress-card {
+      background: #fdfdfd;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid var(--secondary-color);
+      border-radius: 6px;
+      padding: 12px 15px;
+      font-size: 0.9rem;
+    }
+    .progress-card h4 {
+      margin: 0 0 6px 0;
+      font-size: 0.95rem;
+      color: #333;
+    }
+    .progress-card p {
+      margin: 3px 0;
+      color: #666;
+      font-size: 0.85rem;
+    }
     
     .radio-choices-container {
       display: flex;
@@ -241,8 +265,20 @@
 
   <div class="history-area">
     <h3>個人学習履歴・進度管理</h3>
-    <p style="font-size:0.85rem; color:#666;">※Googleでログインすると学習履歴が自動保存されます。</p>
-    <div id="historyList"></div>
+    <p style="font-size:0.85rem; color:#666;">※Googleでログインするとモード別の演習実績とAIによる得意・苦手分析が利用できます。</p>
+    
+    <div style="margin-top: 15px;">
+      <button class="btn btn-secondary" onclick="analyzeLearningProgress()">🤖 AIで得意・苦手分析と学習サポート案を取得する</button>
+    </div>
+    
+    <div id="aiAnalysisArea" class="hidden" style="margin-top: 15px;">
+      <h4 style="margin: 0 0 5px 0; color: var(--secondary-color);">📊 AI総合分析レポート</h4>
+      <div id="aiAnalysisResult" class="box"></div>
+    </div>
+
+    <div id="progressGrid" class="progress-grid">
+      <!-- 動的に7モード分の進捗カードが挿入されます -->
+    </div>
   </div>
 </div>
 
@@ -264,6 +300,17 @@
   const auth = firebase.auth();
   const db = firebase.firestore();
   let currentUser = null;
+  let cachedHistoryDocs = [];
+
+  const modeDefinitions = {
+    'vocab': '① 短文空所補充 (語彙)',
+    'reading': '② 長文空所補充・内容一致 (読解)',
+    'writing_opinion': '③ 意見論述 (Writing)',
+    'writing_summary': '④ 要約問題 (Writing)',
+    'listening': '⑤ 会話・文・Real-Life (Listening)',
+    'shadowing': '⑥ シャドーイング・AI解説',
+    'speaking_full': '⑦ 4コマナレーション ＆ Q&Aシミュレータ'
+  };
 
   function showLog(msg) {
     const logEl = document.getElementById("debugLog");
@@ -299,7 +346,9 @@
     } else {
       statusEl.innerText = "未ログイン";
       authBtn.innerText = "Googleでログイン";
-      document.getElementById("historyList").innerHTML = "";
+      cachedHistoryDocs = [];
+      renderProgressCards();
+      document.getElementById("aiAnalysisArea").classList.add("hidden");
     }
   });
 
@@ -318,17 +367,131 @@
     if (!currentUser || !db) return;
     db.collection("users").doc(currentUser.uid).collection("history")
       .orderBy("timestamp", "desc").get().then((querySnapshot) => {
-        const listEl = document.getElementById("historyList");
-        listEl.innerHTML = "";
+        cachedHistoryDocs = [];
         querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          const dateStr = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString("ja-JP") : "保存中...";
-          const item = document.createElement("div");
-          item.className = "history-item";
-          item.innerHTML = `<strong>[${data.mode}]</strong> ${dateStr}<br>お題: ${data.topicText.substring(0, 40)}...`;
-          listEl.appendChild(item);
+          cachedHistoryDocs.push(doc.data());
         });
+        renderProgressCards();
+      }).catch(e => showLog("履歴読込エラー: " + e.message));
+  }
+
+  function renderProgressCards() {
+    const gridEl = document.getElementById("progressGrid");
+    gridEl.innerHTML = "";
+
+    // モードごとの集計データ作成
+    const stats = {};
+    Object.keys(modeDefinitions).forEach(m => {
+      stats[m] = { count: 0, lastDate: null };
+    });
+
+    cachedHistoryDocs.forEach(item => {
+      const m = item.mode;
+      if (stats[m]) {
+        stats[m].count++;
+        if (item.timestamp) {
+          const d = item.timestamp.toDate();
+          if (!stats[m].lastDate || d > stats[m].lastDate) {
+            stats[m].lastDate = d;
+          }
+        }
+      }
+    });
+
+    Object.keys(modeDefinitions).forEach(m => {
+      const title = modeDefinitions[m];
+      const data = stats[m];
+      const dateStr = data.lastDate ? data.lastDate.toLocaleString("ja-JP") : "未実施";
+
+      const card = document.createElement("div");
+      card.className = "progress-card";
+      card.innerHTML = `
+        <h4>${title}</h4>
+        <p><strong>実施回数:</strong> ${data.count} 回</p>
+        <p><strong>最終実施日時:</strong> ${dateStr}</p>
+      `;
+      gridEl.appendChild(card);
+    });
+  }
+
+  async function analyzeLearningProgress() {
+    const apiKey = document.getElementById('apiKey').value;
+    if (!apiKey) return alert('最初に右上へ Gemini API Key を入力してください。');
+    if (cachedHistoryDocs.length === 0) {
+      return alert('分析対象となる学習履歴がまだありません。まずは各モードで演習を行ってください。');
+    }
+
+    const aiArea = document.getElementById('aiAnalysisArea');
+    const aiResult = document.getElementById('aiAnalysisResult');
+    aiArea.classList.remove('hidden');
+    aiResult.innerText = 'AIがあなたの学習履歴を分析中...';
+    aiArea.scrollIntoView({ behavior: 'smooth' });
+
+    // 履歴データを要約してプロンプトに組み込む
+    let historySummary = cachedHistoryDocs.map((h, idx) => {
+      return `[履歴 ${idx + 1}] モード: ${h.mode}, 日時: ${h.timestamp ? h.timestamp.toDate().toLocaleString() : '不明'}, お題抜粋: ${h.topicText.substring(0, 50)}..., ユーザー回答抜粋: ${h.userInput.substring(0, 50)}..., 評価・解説抜粋: ${h.resultText.substring(0, 80)}...`;
+    }).join('\n');
+
+    const analysisPrompt = `以下のユーザーの学習履歴データ（実施モード、解答、過去の評価結果）を統合的に分析してください。
+1. 7つの分野（①語彙, ②読解, ③意見論述, ④要約, ⑤リスニング, ⑥シャドーイング, ⑦スピーキング）における得意なテスト・分野と苦手なテスト・分野の特定
+2. 苦手分野を克服し、英検準1級に合格するための具体的かつ実践的な学習サポート案・アプローチ指導
+丁寧でモチベーションが高まる日本語で出力してください。
+
+【ユーザーの学習履歴データ】
+${historySummary}`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${apiKey.trim()}&alt=sse`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemInstructions }] },
+          contents: [{ parts: [{ text: analysisPrompt }] }]
+        })
       });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error?.message || `API Error (${response.status})`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+      let fullText = '';
+      aiResult.innerText = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data:')) {
+            const jsonStr = trimmed.replace(/^data:\s*/, '');
+            if (jsonStr === '[DONE]') continue;
+
+            try {
+              const data = JSON.parse(jsonStr);
+              const textChunk = data.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (textChunk) {
+                fullText += textChunk;
+                aiResult.innerText = fullText;
+              }
+            } catch (e) {
+            }
+          }
+        }
+      }
+    } catch (error) {
+      aiResult.innerText = '分析中にエラーが発生しました: ' + error.message;
+    }
   }
 
   let currentMode = '';
@@ -371,7 +534,6 @@
 
     let textToProcess = currentPromptText || '';
 
-    // 要件2: 音声読み上げ時のみ、冒頭の説明文を除外し「Listening Section」以降を抽出
     const listeningKeywordIndex = textToProcess.indexOf('Listening Section');
     if (listeningKeywordIndex !== -1) {
       textToProcess = textToProcess.substring(listeningKeywordIndex);
@@ -383,7 +545,6 @@
       .replace(/^\s*[-+]\s+/gm, '')
       .trim();
 
-    // 要件3: 話者名直後の1秒間のポーズ挿入に対応するため、話者表記を検知して分割
     const speakerRegex = /(?:^|\n)\s*(Man|Woman|Narrator|[AB]):/gi;
     let parts = [];
     let lastIndex = 0;
@@ -443,7 +604,6 @@
       if (chosenVoice) uttr.voice = chosenVoice;
 
       uttr.onend = () => {
-        // 要件3: 発話者名（isSpeakerがtrue）を読み上げた後、正確に1秒間のタイマー待機（setTimeout）を挟む
         if (item.isSpeaker) {
           setTimeout(() => {
             processQueue();
@@ -571,7 +731,6 @@
       'reading': '英検準1級レベルの長文読解パッセージ1つと設問を作成してください。正解や解説は出力しないでください。',
       'writing_opinion': '英検準1級ライティング（意見論述）のTOPIC（お題）を1つ生成してください。模範解答は含めないでください。',
       'writing_summary': '英検準1級要約問題用の英文（100〜120語程度）を作成してください。要約例は含めないでください。',
-      // 要件1: ⑤（listening）のプロンプトを改修（冒頭に説明文、直後に「Listening Section:」見出し）
       'listening': '英検準1級準拠のリスニング問題です。冒頭に「英検準1級準拠のリスニング問題です。」という導入・説明文を出力し、その直後に「Listening Section:」という見出しを置いて会話スクリプト・設問・選択肢(1-4)を出力してください。会話文中の各発言の前に「Man:」や「Woman:」あるいは「A:」「B:」などの話者名を明記してください。音声読み上げが自然になるよう短い文で適切なカンマやピリオドを入れてください。正解や解説は出力しないでください。',
       'shadowing': 'シャドーイング練習用の英検準1級レベルの自然な英文（50語程度）を1つ提示してください。音声読み上げのリズムが良い文章にし、解説は出力しないでください。',
       'speaking_full': '英検準1級二次試験の4コマ漫画状況設定（No.1）および関連する質問（No.2〜4）を作成してください。読み上げやすい自然な文章にしてください。解答例は出力しないでください。'
@@ -586,7 +745,6 @@
         audioStatus.classList.remove('hidden');
         topicTextEl.classList.add('hidden');
 
-        // 要件2: 画面上のテキスト表示（topicText）には説明文を含めた全体の文章をそのまま出力・表示
         playAudio(() => {
           audioStatus.classList.add('hidden');
           topicTextEl.innerText = currentPromptText;
