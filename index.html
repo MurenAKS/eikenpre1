@@ -341,68 +341,124 @@
 ユーザーの入力に対して、評価・アドバイス・解説・模範解答を丁寧な日本語で分かりやすく出力してください。
 リスニングやスピーキング用の英文を生成する際は、音声読み上げエンジンが自然なアクセントと間（ポーズ）で発声できるよう、適切なカンマ(,)やピリオド(.)、感嘆符(!)、疑問符(?)を意識して自然な口語英文を作成してください。`;
 
-  // 高音質英語音声を動的に取得・選択して再生するよう改修された playAudio 関数
+  // 高音質音声の自動選択ユーティリティ関数
+  function getBestEnglishVoice(synth) {
+    const voices = synth.getVoices();
+    if (!voices || voices.length === 0) return null;
+    const englishVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+    if (englishVoices.length === 0) return voices[0];
+
+    const scoredVoices = englishVoices.map(v => {
+      let score = 0;
+      const name = (v.name || '').toLowerCase();
+      if (name.includes('enhanced')) score += 10;
+      if (name.includes('premium')) score += 10;
+      if (name.includes('natural') || name.includes('online') || name.includes('neural')) score += 8;
+      if (name.includes('google')) score += 6;
+      if (name.includes('siri') || name.includes('samantha') || name.includes('microsoft')) score += 4;
+      if (v.lang.toLowerCase() === 'en-us') score += 2;
+      return { voice: v, score };
+    });
+
+    scoredVoices.sort((a, b) => b.score - a.score);
+    return scoredVoices[0].score > 0 ? scoredVoices[0].voice : englishVoices[0];
+  }
+
+  // ⑤ リスニング範囲制御 ＆ 話者名直後の1秒ポーズ挿入対応 playAudio 関数
   function playAudio(onEndCallback) {
     if (!('speechSynthesis' in window)) {
       alert('お使いのブラウザは音声読み上げに対応していません。');
       if (onEndCallback) onEndCallback();
       return;
     }
-    window.speechSynthesis.cancel();
+    const synth = window.speechSynthesis;
+    synth.cancel();
 
-    let cleanText = currentPromptText
+    let textToProcess = currentPromptText || '';
+
+    // 「Listening Section」が含まれている場合、それ以降のテキストのみを抽出
+    const listeningKeywordIndex = textToProcess.indexOf('Listening Section');
+    if (listeningKeywordIndex !== -1) {
+      textToProcess = textToProcess.substring(listeningKeywordIndex);
+    }
+
+    // マークダウン等の記号をクリーンアップ
+    let cleanText = textToProcess
       .replace(/#+/g, '')
       .replace(/[*`_~]/g, '')
       .replace(/^\s*[-+]\s+/gm, '')
-      .replace(/\n+/g, ' ')
       .trim();
 
-    const uttr = new SpeechSynthesisUtterance(cleanText);
-    uttr.lang = 'en-US';
-    uttr.rate = 0.9;
+    // 話者名（Man:, Woman:, A:, B:, Narrator: 等）を検知し、直後に1秒間のポーズを挟むためのセグメント分割
+    const speakerRegex = /(?:^|\n)\s*(Man|Woman|Narrator|[AB]):/gi;
+    let parts = [];
+    let lastIndex = 0;
+    let match;
 
-    // 高品位な英語音声を優先選択するロジック
-    const selectBestVoice = () => {
-      const voices = window.speechSynthesis.getVoices();
-      if (!voices || voices.length === 0) return;
-
-      // 英語音声（en-US, en-GB など）をフィルタリング
-      const englishVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
-
-      if (englishVoices.length > 0) {
-        // 優先キーワードに基づくスコアリング選択
-        const scoredVoices = englishVoices.map(v => {
-          let score = 0;
-          const name = (v.name || '').toLowerCase();
-          if (name.includes('enhanced')) score += 10;
-          if (name.includes('premium')) score += 10;
-          if (name.includes('natural') || name.includes('online') || name.includes('neural')) score += 8;
-          if (name.includes('google')) score += 6;
-          if (name.includes('siri') || name.includes('samantha') || name.includes('microsoft')) score += 4;
-          if (v.lang.toLowerCase() === 'en-us') score += 2;
-          return { voice: v, score };
-        });
-
-        scoredVoices.sort((a, b) => b.score - a.score);
-        if (scoredVoices[0].score > 0) {
-          uttr.voice = scoredVoices[0].voice;
-        } else {
-          uttr.voice = englishVoices[0];
-        }
+    while ((match = speakerRegex.exec(cleanText)) !== null) {
+      if (match.index > lastIndex) {
+        let chunk = cleanText.substring(lastIndex, match.index).trim();
+        if (chunk) parts.push({ type: 'text', content: chunk });
       }
+      let speakerLabel = match[0].trim();
+      parts.push({ type: 'speaker', content: speakerLabel });
+      lastIndex = speakerRegex.lastIndex;
+    }
+    if (lastIndex < cleanText.length) {
+      let remaining = cleanText.substring(lastIndex).trim();
+      if (remaining) parts.push({ type: 'text', content: remaining });
+    }
+
+    if (parts.length === 0 && cleanText) {
+      parts.push({ type: 'text', content: cleanText });
+    }
+
+    let utterances = [];
+    const chosenVoice = getBestEnglishVoice(synth);
+
+    parts.forEach((p) => {
+      if (p.type === 'speaker') {
+        let uttr = new SpeechSynthesisUtterance(p.content);
+        uttr.lang = 'en-US';
+        uttr.rate = 0.9;
+        if (chosenVoice) uttr.voice = chosenVoice;
+        utterances.push(uttr);
+
+        // 話者名直後に1秒間のポーズ（無音）を挿入
+        let pauseUttr = new SpeechSynthesisUtterance("... "); 
+        pauseUttr.lang = 'en-US';
+        pauseUttr.rate = 0.1;
+        pauseUttr.volume = 0;
+        utterances.push(pauseUttr);
+      } else {
+        let subChunks = p.content.split(/(?<=[.!?])\s+|\n+/);
+        subChunks.forEach(sub => {
+          if (sub.trim()) {
+            let uttr = new SpeechSynthesisUtterance(sub.trim());
+            uttr.lang = 'en-US';
+            uttr.rate = 0.9;
+            if (chosenVoice) uttr.voice = chosenVoice;
+            utterances.push(uttr);
+          }
+        });
+      }
+    });
+
+    if (utterances.length === 0) {
+      if (onEndCallback) onEndCallback();
+      return;
+    }
+
+    utterances[utterances.length - 1].onend = () => {
+      if (onEndCallback) onEndCallback();
+    };
+    utterances[utterances.length - 1].onerror = () => {
+      if (onEndCallback) onEndCallback();
     };
 
-    // 音声リストが既にロードされている場合は即時適用、そうでない場合は onvoiceschanged を利用
-    selectBestVoice();
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = selectBestVoice;
-    }
-
-    if (onEndCallback) {
-      uttr.onend = onEndCallback;
-      uttr.onerror = onEndCallback;
-    }
-    window.speechSynthesis.speak(uttr);
+    utterances.forEach(u => {
+      synth.speak(u);
+    });
   }
 
   async function selectMode(mode) {
@@ -515,7 +571,7 @@
       'reading': '英検準1級レベルの長文読解パッセージ1つと設問を作成してください。正解や解説は出力しないでください。',
       'writing_opinion': '英検準1級ライティング（意見論述）のTOPIC（お題）を1つ生成してください。模範解答は含めないでください。',
       'writing_summary': '英検準1級要約問題用の英文（100〜120語程度）を作成してください。要約例は含めないでください。',
-      'listening': '英検準1級リスニング対話文（AとBの会話）と設問、選択肢(1-4)を作成してください。会話文は音声読み上げが自然になるよう、短い文で適切なカンマやピリオドを入れてください。正解や解説は出力しないでください。',
+      'listening': '英検準1級リスニング対話文（AとBの会話）と設問、選択肢(1-4)を作成してください。必ず「Listening Section:」という見出しを先頭につけ、会話文中の各発言の前に「Man:」や「Woman:」あるいは「A:」「B:」などの話者名を明記してください。音声読み上げが自然になるよう短い文で適切なカンマやピリオドを入れてください。正解や解説は出力しないでください。',
       'shadowing': 'シャドーイング練習用の英検準1級レベルの自然な英文（50語程度）を1つ提示してください。音声読み上げのリズムが良い文章にし、解説は出力しないでください。',
       'speaking_full': '英検準1級二次試験の4コマ漫画状況設定（No.1）および関連する質問（No.2〜4）を作成してください。読み上げやすい自然な文章にしてください。解答例は出力しないでください。'
     };
