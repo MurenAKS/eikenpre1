@@ -90,6 +90,7 @@
 
     .btn-secondary { background-color: var(--secondary-color); }
     .btn-audio { background-color: #0288D1; margin-bottom: 10px; }
+    .btn-warning { background-color: #D97706; }
     .btn:hover { opacity: 0.9; }
 
     .test-area, .result-area, .history-area {
@@ -240,7 +241,7 @@
   <div id="testArea" class="test-area hidden">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <h3 id="modeTitle" style="margin:0;">テスト</h3>
-      <button class="btn btn-secondary" style="width:auto; padding:8px 15px;" onclick="generateNewQuestion()">🔄 別の問題に更新する</button>
+      <button id="refreshQuestionBtn" class="btn btn-secondary" style="width:auto; padding:8px 15px;" onclick="generateNewQuestion()">🔄 別の問題に更新する</button>
     </div>
     
     <div class="topic-box">
@@ -267,11 +268,12 @@
     <h3>個人学習履歴・進度管理</h3>
     <p style="font-size:0.85rem; color:#666;">※Googleでログインするとモード別の演習実績とAIによる得意・苦手分析が利用できます。</p>
     
-    <div style="margin-top: 15px;">
-      <button class="btn btn-secondary" onclick="analyzeLearningProgress()">🤖 AIで得意・苦手分析と学習サポート案を取得する</button>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+      <button class="btn btn-secondary" style="flex: 1; min-width: 250px;" onclick="analyzeLearningProgress()">🤖 AIで得意・苦手分析と学習サポート案を取得する</button>
+      <!-- 要件1: 誤答抽出・復習機能（Review Mode）を起動するボタン -->
+      <button class="btn btn-warning" style="flex: 1; min-width: 250px;" onclick="startReviewMode()">🔁 過去に間違えた問題を復習する</button>
     </div>
     
-    <!-- 要件1: 分析結果を表示する専用コンテナ要素を確実に配置 -->
     <div id="aiAnalysisArea" class="hidden" style="margin-top: 15px;">
       <h4 style="margin: 0 0 5px 0; color: var(--secondary-color);">📊 AI総合分析レポート</h4>
       <div id="aiAnalysisResult" class="box hidden"></div>
@@ -415,7 +417,73 @@
     });
   }
 
-  // 要件1: AI分析実行関数の実装（APIキー確認、履歴結合、SSEストリーミング、結果表示・スクロール）
+  // 要件1: 誤答抽出・復習機能（Review Mode）の実装
+  async function startReviewMode() {
+    if (!currentUser) {
+      return alert('復習機能を利用するにはGoogleログインが必要です。');
+    }
+    if (cachedHistoryDocs.length === 0) {
+      return alert('学習履歴がまだありません。まずは各モードで演習を行ってください。');
+    }
+
+    // 不正解・誤答・改善の余地がある履歴をフィルタリング
+    // キーワード例: 不正解、×、惜しい、改善、ミス、間違い、点数が低いなど、あるいは簡易的に「正解」が含まれない、または改善点が指摘されているものを抽出
+    const incorrectKeywords = ['不正解', '×', '惜しい', '改善', '誤り', '不十分', '減点', '修正'];
+    const wrongList = cachedHistoryDocs.filter(item => {
+      const res = (item.resultText || '').toLowerCase();
+      // もし結果テキストに不正解や改善を促すフィードバックが含まれているものを誤答候補とする
+      return incorrectKeywords.some(kw => res.includes(kw));
+    });
+
+    // 万が一キーワードに完全一致しない場合、全履歴からランダムにピックアップするか、直近のものを対象にするフォールバック
+    const targetPool = wrongList.length > 0 ? wrongList : cachedHistoryDocs;
+    const selectedItem = targetPool[Math.floor(Math.random() * targetPool.length)];
+
+    currentMode = selectedItem.mode || 'vocab';
+    currentPromptText = selectedItem.topicText || '';
+
+    const testArea = document.getElementById('testArea');
+    testArea.classList.remove('hidden');
+    testArea.scrollIntoView({ behavior: 'smooth' });
+
+    document.getElementById('resultArea').classList.add('hidden');
+    document.getElementById('userInput').value = '';
+    document.getElementById('resultContent').innerText = '';
+
+    const modeName = modeDefinitions[currentMode] || currentMode;
+    document.getElementById('modeTitle').innerText = `🔁 復習モード [ ${modeName} ]`;
+
+    // 復習モード時は「別の問題に更新する」ボタンの代わりに注意喚起または非表示等の制御、あるいは通常通り機能させる
+    const audioBtn = document.getElementById('audioBtn');
+    const audioStatus = document.getElementById('audioStatus');
+    const topicTextEl = document.getElementById('topicText');
+    const loadingEl = document.getElementById('topicLoading');
+    const radioArea = document.getElementById('radioChoicesArea');
+
+    loadingEl.classList.add('hidden');
+    audioBtn.classList.add('hidden');
+    audioStatus.classList.add('hidden');
+    radioArea.innerHTML = '';
+    radioArea.classList.add('hidden');
+
+    if (['listening', 'shadowing', 'speaking_full'].includes(currentMode)) {
+      audioBtn.classList.remove('hidden');
+      audioStatus.classList.remove('hidden');
+      topicTextEl.classList.add('hidden');
+
+      playAudio(() => {
+        audioStatus.classList.add('hidden');
+        topicTextEl.innerText = currentPromptText;
+        topicTextEl.classList.remove('hidden');
+        checkAndRenderRadioChoices(currentPromptText);
+      });
+    } else {
+      topicTextEl.innerText = currentPromptText;
+      topicTextEl.classList.remove('hidden');
+      checkAndRenderRadioChoices(currentPromptText);
+    }
+  }
+
   async function analyzeLearningProgress() {
     const apiKey = document.getElementById('apiKey').value;
     if (!apiKey) return alert('最初に右上へ Gemini API Key を入力してください。');
