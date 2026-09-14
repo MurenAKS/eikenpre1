@@ -283,7 +283,7 @@
     </div>
 
     <div id="progressGrid" class="progress-grid">
-      <!-- 動的に7モード分の進捗カードが挿入され、モード別復習ボタンも配置されます -->
+      <!-- 動的に7モード分の進捗カードが挿入されます -->
     </div>
   </div>
 </div>
@@ -358,6 +358,16 @@
       document.getElementById("aiAnalysisResult").classList.add("hidden");
     }
   });
+
+  // 要件2: 話者表記を「Man:」「Woman:」に統一するフォーマット関数
+  function normalizeSpeakerLabels(text) {
+    if (!text) return '';
+    return text
+      .replace(/^(?:\s*[-*#]*\s*)?(?:M\s*\(Man\)|M|Man)\s*:/gim, 'Man:')
+      .replace(/^(?:\s*[-*#]*\s*)?(?:W\s*\(Woman\)|W|Woman)\s*:/gim, 'Woman:')
+      .replace(/\n\s*(?:M\s*\(Man\)|M|Man)\s*:/gim, '\nMan:')
+      .replace(/\n\s*(?:W\s*\(Woman\)|W|Woman)\s*:/gim, '\nWoman:');
+  }
 
   function saveToFirestore(mode, topicText, userInput, resultText) {
     if (!currentUser || !db) return;
@@ -454,7 +464,8 @@
     const selectedItem = targetPool[Math.floor(Math.random() * targetPool.length)];
 
     currentMode = selectedItem.mode || 'vocab';
-    currentPromptText = selectedItem.topicText || '';
+    // 話者表記を正規化してセット
+    currentPromptText = normalizeSpeakerLabels(selectedItem.topicText || '');
 
     const testArea = document.getElementById('testArea');
     testArea.classList.remove('hidden');
@@ -618,11 +629,11 @@ ${historySummary}`;
 
     let textToProcess = currentPromptText || '';
 
-    // 要件2: 記号やListening Section切り出し前に、文章全体からマークダウン記号を完全除去
+    // 要件1: 音声読み上げ処理の冒頭で、文字列全体から `#`、`*`、`_`、`~` などのマークダウン記号を完全消去
     textToProcess = textToProcess
-      .replace(/#+/g, '')
+      .replace(/#/g, '')
       .replace(/\*/g, '')
-      .replace(/[_~`]/g, '');
+      .replace(/[_~]/g, '');
 
     const listeningKeywordIndex = textToProcess.indexOf('Listening Section');
     if (listeningKeywordIndex !== -1) {
@@ -633,6 +644,7 @@ ${historySummary}`;
       .replace(/^\s*[-+]\s+/gm, '')
       .trim();
 
+    // 要件2: 話者表記の検出用正規表現（Man, Woman, Narrator, A, B）
     const speakerRegex = /(?:^|\n)\s*(Man|Woman|Narrator|[AB]):/gi;
     let parts = [];
     let lastIndex = 0;
@@ -692,6 +704,7 @@ ${historySummary}`;
       if (chosenVoice) uttr.voice = chosenVoice;
 
       uttr.onend = () => {
+        // 要件2: 発話者名直後の1秒ポーズ待機処理 (setTimeout 1000ms)
         if (item.isSpeaker) {
           setTimeout(() => {
             processQueue();
@@ -715,16 +728,14 @@ ${historySummary}`;
     document.getElementById('userInput').value = `${val}`;
   }
 
-  // 要件1: 過去履歴データや旧バージョンデータのフォーマット差異に関わらず、選択肢（1〜4）を確実に検出・表示するよう判定を緩和・強化
   function checkAndRenderRadioChoices(text) {
     const radioArea = document.getElementById('radioChoicesArea');
     radioArea.innerHTML = '';
     
-    // 括弧あり(1)〜(4)、数字＋ピリオド 1.〜4.、あるいは単に「1」「2」「3」「4」の選択肢パターンを網羅的に検出する緩和正規表現
     const hasChoices = /(?:1[.)]|2[.)]|3[.)]|4[.)]|\(1\)|\(2\)|\(3\)|\(4\)|\b1\b.*\b2\b.*\b3\b.*\b4\b)/is.test(text);
 
     if ((hasChoices || currentMode === 'vocab' || currentMode === 'listening' || currentMode === 'reading') && 
-        (currentMode === 'vocab' || currentMode === 'listening' || currentMode === 'reading' || currentMode === 'reading')) {
+        (currentMode === 'vocab' || currentMode === 'listening' || currentMode === 'reading')) {
       const container = document.createElement('div');
       container.className = 'radio-choices-container';
       
@@ -822,13 +833,17 @@ ${historySummary}`;
       'reading': '英検準1級レベルの長文読解パッセージ1つと設問を作成してください。正解や解説は出力しないでください。',
       'writing_opinion': '英検準1級ライティング（意見論述）のTOPIC（お題）を1つ生成してください。模範解答は含めないでください。',
       'writing_summary': '英検準1級要約問題用の英文（100〜120語程度）を作成してください。要約例は含めないでください。',
-      'listening': '英検準1級準拠のリスニング問題です。冒頭に「英検準1級準拠のリスニング問題です。」という導入・説明文を出力し、その直後に「Listening Section:」という見出しを置いて会話スクリプト・設問・選択肢(1-4)を出力してください。会話文中の各発言の前に「Man:」や「Woman:」あるいは「A:」「B:」などの話者名を明記してください。音声読み上げが自然になるよう短い文で適切なカンマやピリオドを入れてください。正解や解説は出力しないでください。',
+      // 要件2: 生成時プロンプトで話者表記を「Man:」「Woman:」に指定
+      'listening': '英検準1級準拠のリスニング問題です。冒頭に「英検準1級準拠のリスニング問題です。」という導入・説明文を出力し、その直後に「Listening Section:」という見出しを置いて会話スクリプト・設問・選択肢(1-4)を出力してください。会話文中の各発言の前に必ず「Man:」または「Woman:」という話者名を明記してください（M:やW:は使用禁止）。音声読み上げが自然になるよう短い文で適切なカンマやピリオドを入れてください。正解や解説は出力しないでください。',
       'shadowing': 'シャドーイング練習用の英検準1級レベルの自然な英文（50語程度）を1つ提示してください。音声読み上げのリズムが良い文章にし、解説は出力しないでください。',
       'speaking_full': '英検準1級二次試験の4コマ漫画状況設定（No.1）および関連する質問（No.2〜4）を作成してください。読み上げやすい自然な文章にしてください。解答例は出力しないでください。'
     };
 
     try {
-      currentPromptText = await callGemini(prompts[currentMode], apiKey);
+      let rawText = await callGemini(prompts[currentMode], apiKey);
+      // 要件2: 画面表示や音声読み上げの前に話者表記を「Man:」「Woman:」に完全統一・正規化
+      currentPromptText = normalizeSpeakerLabels(rawText);
+      
       loadingEl.classList.add('hidden');
 
       if (['listening', 'shadowing', 'speaking_full'].includes(currentMode)) {
