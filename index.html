@@ -367,7 +367,7 @@
       topicText: topicText,
       userInput: userInput,
       resultText: resultText
-    }).then(() => loadHistory()).catch(e => saveLog("保存エラー: " + e.message));
+    }).then(() => loadHistory()).catch(e => showLog("保存エラー: " + e.message));
   }
 
   function loadHistory() {
@@ -382,7 +382,6 @@
       }).catch(e => showLog("履歴読込エラー: " + e.message));
   }
 
-  // 要件1: モード別進捗カード内に「このモードの誤答を復習する」ボタンを実装
   function renderProgressCards() {
     const gridEl = document.getElementById("progressGrid");
     gridEl.innerHTML = "";
@@ -424,7 +423,6 @@
     });
   }
 
-  // 要件1: 絞り込み対応の誤答復習機能（Review Mode）ロジック
   async function startReviewMode(specificMode = null) {
     if (!currentUser) {
       return alert('復習機能を利用するにはGoogleログインが必要です。');
@@ -435,7 +433,6 @@
 
     const incorrectKeywords = ['不正解', '×', '惜しい', '改善', '誤り', '不十分', '減点', '修正'];
     
-    // 指定されたモードがあればそのモードで絞り込む
     let pool = cachedHistoryDocs;
     if (specificMode) {
       pool = cachedHistoryDocs.filter(item => item.mode === specificMode);
@@ -621,15 +618,18 @@ ${historySummary}`;
 
     let textToProcess = currentPromptText || '';
 
+    // 要件2: 記号やListening Section切り出し前に、文章全体からマークダウン記号を完全除去
+    textToProcess = textToProcess
+      .replace(/#+/g, '')
+      .replace(/\*/g, '')
+      .replace(/[_~`]/g, '');
+
     const listeningKeywordIndex = textToProcess.indexOf('Listening Section');
     if (listeningKeywordIndex !== -1) {
       textToProcess = textToProcess.substring(listeningKeywordIndex);
     }
 
     let cleanText = textToProcess
-      .replace(/#+/g, '')
-      .replace(/\*/g, '')
-      .replace(/[_~`]/g, '')
       .replace(/^\s*[-+]\s+/gm, '')
       .trim();
 
@@ -715,13 +715,16 @@ ${historySummary}`;
     document.getElementById('userInput').value = `${val}`;
   }
 
+  // 要件1: 過去履歴データや旧バージョンデータのフォーマット差異に関わらず、選択肢（1〜4）を確実に検出・表示するよう判定を緩和・強化
   function checkAndRenderRadioChoices(text) {
     const radioArea = document.getElementById('radioChoicesArea');
     radioArea.innerHTML = '';
     
-    const hasChoices = /(?:^|\s)(?:1[.)]|2[.)]|3[.)]|4[.)]|\(1\)|\(2\)|\(3\)|\(4\))/m.test(text);
+    // 括弧あり(1)〜(4)、数字＋ピリオド 1.〜4.、あるいは単に「1」「2」「3」「4」の選択肢パターンを網羅的に検出する緩和正規表現
+    const hasChoices = /(?:1[.)]|2[.)]|3[.)]|4[.)]|\(1\)|\(2\)|\(3\)|\(4\)|\b1\b.*\b2\b.*\b3\b.*\b4\b)/is.test(text);
 
-    if (hasChoices && (currentMode === 'vocab' || currentMode === 'listening' || currentMode === 'reading')) {
+    if ((hasChoices || currentMode === 'vocab' || currentMode === 'listening' || currentMode === 'reading') && 
+        (currentMode === 'vocab' || currentMode === 'listening' || currentMode === 'reading' || currentMode === 'reading')) {
       const container = document.createElement('div');
       container.className = 'radio-choices-container';
       
