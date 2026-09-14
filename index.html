@@ -270,7 +270,6 @@
     
     <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
       <button class="btn btn-secondary" style="flex: 1; min-width: 250px;" onclick="analyzeLearningProgress()">🤖 AIで得意・苦手分析と学習サポート案を取得する</button>
-      <!-- 要件1: 誤答抽出・復習機能（Review Mode）を起動するボタン -->
       <button class="btn btn-warning" style="flex: 1; min-width: 250px;" onclick="startReviewMode()">🔁 過去に間違えた問題を復習する</button>
     </div>
     
@@ -417,7 +416,6 @@
     });
   }
 
-  // 要件1: 誤答抽出・復習機能（Review Mode）の実装
   async function startReviewMode() {
     if (!currentUser) {
       return alert('復習機能を利用するにはGoogleログインが必要です。');
@@ -426,16 +424,12 @@
       return alert('学習履歴がまだありません。まずは各モードで演習を行ってください。');
     }
 
-    // 不正解・誤答・改善の余地がある履歴をフィルタリング
-    // キーワード例: 不正解、×、惜しい、改善、ミス、間違い、点数が低いなど、あるいは簡易的に「正解」が含まれない、または改善点が指摘されているものを抽出
     const incorrectKeywords = ['不正解', '×', '惜しい', '改善', '誤り', '不十分', '減点', '修正'];
     const wrongList = cachedHistoryDocs.filter(item => {
       const res = (item.resultText || '').toLowerCase();
-      // もし結果テキストに不正解や改善を促すフィードバックが含まれているものを誤答候補とする
       return incorrectKeywords.some(kw => res.includes(kw));
     });
 
-    // 万が一キーワードに完全一致しない場合、全履歴からランダムにピックアップするか、直近のものを対象にするフォールバック
     const targetPool = wrongList.length > 0 ? wrongList : cachedHistoryDocs;
     const selectedItem = targetPool[Math.floor(Math.random() * targetPool.length)];
 
@@ -453,7 +447,6 @@
     const modeName = modeDefinitions[currentMode] || currentMode;
     document.getElementById('modeTitle').innerText = `🔁 復習モード [ ${modeName} ]`;
 
-    // 復習モード時は「別の問題に更新する」ボタンの代わりに注意喚起または非表示等の制御、あるいは通常通り機能させる
     const audioBtn = document.getElementById('audioBtn');
     const audioStatus = document.getElementById('audioStatus');
     const topicTextEl = document.getElementById('topicText');
@@ -610,9 +603,11 @@ ${historySummary}`;
       textToProcess = textToProcess.substring(listeningKeywordIndex);
     }
 
+    // 要件1: 音声読み上げ時のマークダウン記号（*, #, _, ~, `）を綺麗に削除・置換
     let cleanText = textToProcess
       .replace(/#+/g, '')
-      .replace(/[*`_~]/g, '')
+      .replace(/\*/g, '')
+      .replace(/[_~`]/g, '')
       .replace(/^\s*[-+]\s+/gm, '')
       .trim();
 
