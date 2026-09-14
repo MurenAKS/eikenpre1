@@ -91,6 +91,7 @@
     .btn-secondary { background-color: var(--secondary-color); }
     .btn-audio { background-color: #0288D1; margin-bottom: 10px; }
     .btn-warning { background-color: #D97706; }
+    .btn-review-card { background-color: #D97706; margin-top: 8px; font-size: 0.85rem; padding: 6px 10px; }
     .btn:hover { opacity: 0.9; }
 
     .test-area, .result-area, .history-area {
@@ -140,6 +141,9 @@
       border-radius: 6px;
       padding: 12px 15px;
       font-size: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
     .progress-card h4 {
       margin: 0 0 6px 0;
@@ -266,11 +270,11 @@
 
   <div class="history-area">
     <h3>個人学習履歴・進度管理</h3>
-    <p style="font-size:0.85rem; color:#666;">※Googleでログインするとモード別の演習実績とAIによる得意・苦手分析が利用できます。</p>
+    <p style="font-size:0.85rem; color:#666;">※Googleでログインするとモード別の演習実績とAIによる得意・苦手分析、モード別誤答復習機能が利用できます。</p>
     
     <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
       <button class="btn btn-secondary" style="flex: 1; min-width: 250px;" onclick="analyzeLearningProgress()">🤖 AIで得意・苦手分析と学習サポート案を取得する</button>
-      <button class="btn btn-warning" style="flex: 1; min-width: 250px;" onclick="startReviewMode()">🔁 過去に間違えた問題を復習する</button>
+      <button class="btn btn-warning" style="flex: 1; min-width: 250px;" onclick="startReviewMode()">🔁 全体からランダムに誤答を復習する</button>
     </div>
     
     <div id="aiAnalysisArea" class="hidden" style="margin-top: 15px;">
@@ -279,7 +283,7 @@
     </div>
 
     <div id="progressGrid" class="progress-grid">
-      <!-- 動的に7モード分の進捗カードが挿入されます -->
+      <!-- 動的に7モード分の進捗カードが挿入され、モード別復習ボタンも配置されます -->
     </div>
   </div>
 </div>
@@ -363,7 +367,7 @@
       topicText: topicText,
       userInput: userInput,
       resultText: resultText
-    }).then(() => loadHistory()).catch(e => showLog("保存エラー: " + e.message));
+    }).then(() => loadHistory()).catch(e => saveLog("保存エラー: " + e.message));
   }
 
   function loadHistory() {
@@ -378,6 +382,7 @@
       }).catch(e => showLog("履歴読込エラー: " + e.message));
   }
 
+  // 要件1: モード別進捗カード内に「このモードの誤答を復習する」ボタンを実装
   function renderProgressCards() {
     const gridEl = document.getElementById("progressGrid");
     gridEl.innerHTML = "";
@@ -408,15 +413,19 @@
       const card = document.createElement("div");
       card.className = "progress-card";
       card.innerHTML = `
-        <h4>${title}</h4>
-        <p><strong>実施回数:</strong> ${data.count} 回</p>
-        <p><strong>最終実施日時:</strong> ${dateStr}</p>
+        <div>
+          <h4>${title}</h4>
+          <p><strong>実施回数:</strong> ${data.count} 回</p>
+          <p><strong>最終実施日時:</strong> ${dateStr}</p>
+        </div>
+        <button class="btn btn-review-card" onclick="startReviewMode('${m}')">🔁 このモードの誤答を復習</button>
       `;
       gridEl.appendChild(card);
     });
   }
 
-  async function startReviewMode() {
+  // 要件1: 絞り込み対応の誤答復習機能（Review Mode）ロジック
+  async function startReviewMode(specificMode = null) {
     if (!currentUser) {
       return alert('復習機能を利用するにはGoogleログインが必要です。');
     }
@@ -425,12 +434,26 @@
     }
 
     const incorrectKeywords = ['不正解', '×', '惜しい', '改善', '誤り', '不十分', '減点', '修正'];
-    const wrongList = cachedHistoryDocs.filter(item => {
+    
+    // 指定されたモードがあればそのモードで絞り込む
+    let pool = cachedHistoryDocs;
+    if (specificMode) {
+      pool = cachedHistoryDocs.filter(item => item.mode === specificMode);
+      if (pool.length === 0) {
+        return alert(`「${modeDefinitions[specificMode] || specificMode}」の学習履歴がまだありません。`);
+      }
+    }
+
+    const wrongList = pool.filter(item => {
       const res = (item.resultText || '').toLowerCase();
       return incorrectKeywords.some(kw => res.includes(kw));
     });
 
-    const targetPool = wrongList.length > 0 ? wrongList : cachedHistoryDocs;
+    if (specificMode && wrongList.length === 0) {
+      return alert(`「${modeDefinitions[specificMode] || specificMode}」の誤答履歴はありません。素晴らしい進捗です！`);
+    }
+
+    const targetPool = wrongList.length > 0 ? wrongList : pool;
     const selectedItem = targetPool[Math.floor(Math.random() * targetPool.length)];
 
     currentMode = selectedItem.mode || 'vocab';
@@ -603,7 +626,6 @@ ${historySummary}`;
       textToProcess = textToProcess.substring(listeningKeywordIndex);
     }
 
-    // 要件1: 音声読み上げ時のマークダウン記号（*, #, _, ~, `）を綺麗に削除・置換
     let cleanText = textToProcess
       .replace(/#+/g, '')
       .replace(/\*/g, '')
