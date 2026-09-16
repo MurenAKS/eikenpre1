@@ -11,83 +11,18 @@
       --bg-color: #F4F5F7;
       --card-bg: #FFFFFF;
     }
-
-    body {
-      font-family: "Helvetica Neue", Arial, sans-serif;
-      background-color: var(--bg-color);
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    .header {
-      background: var(--card-bg);
-      padding: 15px 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .api-key-input {
-      padding: 8px;
-      width: 250px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-
-    .category-title {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #444;
-      margin: 25px 0 10px 0;
-      padding-left: 10px;
-      border-left: 4px solid var(--primary-color);
-    }
-
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 15px;
-    }
-
-    .card {
-      background: var(--card-bg);
-      padding: 18px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      border-top: 4px solid var(--primary-color);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
+    body { font-family: "Helvetica Neue", Arial, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: #333; }
+    .container { max-width: 900px; margin: 0 auto; }
+    .header { background: var(--card-bg); padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .api-key-input { padding: 8px; width: 250px; border: 1px solid #ccc; border-radius: 4px; }
+    .category-title { font-size: 1.2rem; font-weight: bold; color: #444; margin: 25px 0 10px 0; padding-left: 10px; border-left: 4px solid var(--primary-color); }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+    .card { background: var(--card-bg); padding: 18px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-top: 4px solid var(--primary-color); display: flex; flex-direction: column; justify-content: space-between; }
     .card-speaking { border-top-color: #E65100; }
     .card-listening { border-top-color: #0288D1; }
-
     .card h3 { margin: 0 0 8px 0; font-size: 1.05rem; }
     .card p { margin: 0 0 15px 0; font-size: 0.85rem; color: #666; }
-
-    .btn {
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
-      width: 100%;
-    }
-
+    .btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
     .btn-secondary { background-color: var(--secondary-color); }
     .btn-audio { background-color: #0288D1; margin-bottom: 10px; }
     .btn-stop-audio { background-color: #DC2626; margin-bottom: 10px; }
@@ -95,211 +30,32 @@
     .btn-review-card { background-color: #D97706; margin-top: 8px; font-size: 0.85rem; padding: 6px 10px; }
     .btn-mic { background-color: #E65100; margin-bottom: 10px; }
     .btn-mic.recording { background-color: #C62828; animation: pulse 1.5s infinite; }
-    
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.6; }
-      100% { opacity: 1; }
-    }
-
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
     .btn:hover { opacity: 0.9; }
-
-    .test-area, .result-area, .history-area {
-      background: var(--card-bg);
-      padding: 25px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      margin-top: 20px;
-    }
-
-    .topic-box {
-      background: #EBF3FB;
-      border-left: 5px solid var(--secondary-color);
-      padding: 15px;
-      margin: 15px 0;
-      border-radius: 4px;
-      font-size: 1rem;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-
-    textarea {
-      width: 100%;
-      height: 140px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
-      margin-top: 10px;
-      font-size: 1rem;
-    }
-
+    .test-area, .result-area, .history-area { background: var(--card-bg); padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-top: 20px; }
+    .topic-box { background: #EBF3FB; border-left: 5px solid var(--secondary-color); padding: 15px; margin: 15px 0; border-radius: 4px; font-size: 1rem; line-height: 1.6; white-space: pre-wrap; }
+    textarea { width: 100%; height: 140px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; margin-top: 10px; font-size: 1rem; }
     .hidden { display: none; }
     .loading { color: var(--secondary-color); font-style: italic; font-weight: bold; }
     .box { background: #f9f9f9; padding: 15px; border-left: 4px solid var(--primary-color); margin-top: 10px; white-space: pre-wrap; line-height: 1.6; }
-    
-    .progress-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 12px;
-      margin-top: 15px;
-    }
-    .progress-card {
-      background: #fdfdfd;
-      border: 1px solid #e2e8f0;
-      border-left: 4px solid var(--secondary-color);
-      border-radius: 6px;
-      padding: 12px 15px;
-      font-size: 0.9rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .progress-card h4 {
-      margin: 0 0 6px 0;
-      font-size: 0.95rem;
-      color: #333;
-    }
-    .progress-card p {
-      margin: 3px 0;
-      color: #666;
-      font-size: 0.85rem;
-    }
-    
-    .radio-choices-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      margin: 12px 0 5px 0;
-      padding: 10px;
-      background: #fdfdfd;
-      border: 1px solid #e2e8f0;
-      border-radius: 4px;
-    }
-    .radio-choice-label {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-weight: bold;
-      cursor: pointer;
-      color: #334155;
-    }
-
-    /* 4コマ漫画イラスト風ビジュアル描画スタイル */
-    .comic-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      margin: 15px 0;
-    }
-    @media (max-width: 600px) {
-      .comic-grid { grid-template-columns: 1fr; }
-    }
-    .comic-panel-card {
-      background: #fff;
-      border: 3px solid #1e293b;
-      border-radius: 10px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.08);
-      position: relative;
-    }
-    .comic-panel-top-badge {
-      background: #0288D1;
-      color: white;
-      font-size: 0.75rem;
-      font-weight: bold;
-      padding: 3px 8px;
-      border-radius: 4px;
-      align-self: flex-start;
-      margin-bottom: 6px;
-    }
-    .comic-desc-arrow {
-      background: #fef3c7;
-      border: 1px solid #f59e0b;
-      color: #b45309;
-      font-size: 0.8rem;
-      font-weight: bold;
-      padding: 5px 8px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      position: relative;
-    }
-    .comic-desc-arrow::after {
-      content: '▼';
-      position: absolute;
-      bottom: -10px;
-      left: 20px;
-      font-size: 10px;
-      color: #f59e0b;
-    }
-    .comic-illustration-box {
-      background: #f0fdf4;
-      border: 2px dashed #86efac;
-      border-radius: 8px;
-      height: 120px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 8px;
-      position: relative;
-      font-size: 2.2rem;
-    }
-    .comic-emoji-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      justify-content: center;
-    }
-    .speech-bubble {
-      position: relative;
-      background: #ffffff;
-      border: 2px solid #334155;
-      border-radius: 12px;
-      padding: 8px 12px;
-      font-size: 0.82rem;
-      color: #1e293b;
-      font-style: italic;
-      text-align: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      margin-top: 4px;
-    }
-    .speech-bubble::before {
-      content: '';
-      position: absolute;
-      top: -8px;
-      left: 50%;
-      transform: translateX(-50%);
-      border-width: 0 6px 8px 6px;
-      border-style: solid;
-      border-color: transparent transparent #334155 transparent;
-    }
-
-    .timer-badge {
-      display: inline-block;
-      background: #FEF2F2;
-      color: #DC2626;
-      border: 1px solid #FCA5A5;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 0.95rem;
-      margin-bottom: 12px;
-    }
-    .qa-step-box {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      border-left: 5px solid #16a34a;
-      padding: 15px;
-      border-radius: 6px;
-      margin: 15px 0;
-    }
+    .progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 15px; }
+    .progress-card { background: #fdfdfd; border: 1px solid #e2e8f0; border-left: 4px solid var(--secondary-color); border-radius: 6px; padding: 12px 15px; font-size: 0.9rem; display: flex; flex-direction: column; justify-content: space-between; }
+    .progress-card h4 { margin: 0 0 6px 0; font-size: 0.95rem; color: #333; }
+    .progress-card p { margin: 3px 0; color: #666; font-size: 0.85rem; }
+    .radio-choices-container { display: flex; flex-wrap: wrap; gap: 15px; margin: 12px 0 5px 0; padding: 10px; background: #fdfdfd; border: 1px solid #e2e8f0; border-radius: 4px; }
+    .radio-choice-label { display: flex; align-items: center; gap: 5px; font-weight: bold; cursor: pointer; color: #334155; }
+    .comic-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 15px 0; }
+    @media (max-width: 600px) { .comic-grid { grid-template-columns: 1fr; } }
+    .comic-panel-card { background: #fff; border: 3px solid #1e293b; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 6px rgba(0,0,0,0.08); position: relative; }
+    .comic-panel-top-badge { background: #0288D1; color: white; font-size: 0.75rem; font-weight: bold; padding: 3px 8px; border-radius: 4px; align-self: flex-start; margin-bottom: 6px; }
+    .comic-desc-arrow { background: #fef3c7; border: 1px solid #f59e0b; color: #b45309; font-size: 0.8rem; font-weight: bold; padding: 5px 8px; border-radius: 6px; margin-bottom: 8px; position: relative; }
+    .comic-illustration-box { background: #f0fdf4; border: 2px dashed #86efac; border-radius: 8px; height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 8px; position: relative; font-size: 2.2rem; }
+    .comic-emoji-row { display: flex; gap: 10px; align-items: center; justify-content: center; }
+    .speech-bubble { position: relative; background: #ffffff; border: 2px solid #334155; border-radius: 12px; padding: 8px 12px; font-size: 0.82rem; color: #1e293b; font-style: italic; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-top: 4px; }
+    .speech-bubble::before { content: ''; position: absolute; top: -8px; left: 50%; transform: translateX(-50%); border-width: 0 6px 8px 6px; border-style: solid; border-color: transparent transparent #334155 transparent; }
+    .timer-badge { display: inline-block; background: #FEF2F2; color: #DC2626; border: 1px solid #FCA5A5; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.95rem; margin-bottom: 12px; }
+    .qa-step-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-left: 5px solid #16a34a; padding: 15px; border-radius: 6px; margin: 15px 0; }
   </style>
-
-  <!-- Firebase SDK (Compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -376,18 +132,15 @@
       <span id="topicLoading" class="loading hidden">新しい問題をAIが生成中...</span>
       <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
         <button id="audioBtn" class="btn btn-audio hidden" style="width: auto; margin-bottom: 0;" onclick="playAudio()">🔊 音声を聴く</button>
-        <button id="stopAudioBtn" class="btn btn-stop-audio hidden" style="width: auto; margin-bottom: 0;" onclick="stopAudio()">⏹️ 読み上げを停止</button>
+        <button id="stopAudioBtn" class="btn btn-stop-audio hidden" style="width: auto; margin-bottom: 0;" onclick="stopSpeech()">⏹️ 読み上げを停止</button>
       </div>
       <div id="audioStatus" class="loading hidden" style="margin-top:5px;">🎵 音声を再生中...（終了後に問題が表示されます）</div>
       <div id="topicText" style="margin-top:10px;">問題を取得中...</div>
     </div>
 
-    <!-- ⑦4コマ漫画ビジュアル描画専用のHTMLコンテナ -->
     <div id="comicContainer" class="hidden"></div>
-
     <div id="radioChoicesArea" class="hidden"></div>
 
-    <!-- 音声入力用コントロールパネル -->
     <div id="speechInputContainer" class="hidden" style="margin-top: 15px; margin-bottom: 5px;">
       <button id="micBtn" class="btn btn-mic" onclick="toggleSpeechRecognition()">🎤 英語で話す (音声入力)</button>
       <div id="micStatus" class="loading hidden" style="margin-top: 5px; font-size: 0.9rem;">🎙️ 聞き取り中...（英語で話してください。終了時は「停止」ボタンを押してください）</div>
@@ -417,16 +170,11 @@
       <div id="aiAnalysisResult" class="box hidden"></div>
     </div>
 
-    <div id="progressGrid" class="progress-grid">
-      <!-- 動的に7モード分の進捗カードが挿入されます -->
-    </div>
+    <div id="progressGrid" class="progress-grid"></div>
   </div>
 </div>
 
 <script>
-  // ==========================================
-  // 1. Firebase 初期化およびFirestore参照
-  // ==========================================
   const firebaseConfig = {
     apiKey: "AIzaSyCk8fSvzuL1-inbDBEXFgrqXdXAbWMlov8",
     authDomain: "eiken-pre1-app.firebaseapp.com",
@@ -463,18 +211,11 @@
   }
 
   function loginDirect() {
-    showLog("ログイン処理を実行中...");
     if (currentUser) {
-      auth.signOut().then(() => {
-        showLog("ログアウトしました");
-      }).catch(e => showLog("ログアウトエラー: " + e.message));
+      auth.signOut().catch(e => showLog("ログアウトエラー: " + e.message));
     } else {
       const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).then((result) => {
-        showLog("ログイン成功: " + result.user.displayName);
-      }).catch((error) => {
-        showLog("エラー発生: [" + error.code + "] " + error.message);
-      });
+      auth.signInWithPopup(provider).catch(e => showLog("エラー: " + e.message));
     }
   }
 
@@ -482,7 +223,6 @@
     currentUser = user;
     const statusEl = document.getElementById("userStatus");
     const authBtn = document.getElementById("authBtn");
-    
     if (user) {
       statusEl.innerText = `👤 ${user.displayName || user.email}`;
       authBtn.innerText = "ログアウト";
@@ -510,10 +250,7 @@
     if (!currentUser || !db) return;
     db.collection("users").doc(currentUser.uid).collection("history").add({
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      mode: mode,
-      topicText: topicText,
-      userInput: userInput,
-      resultText: resultText
+      mode, topicText, userInput, resultText
     }).then(() => loadHistory()).catch(e => showLog("保存エラー: " + e.message));
   }
 
@@ -522,9 +259,7 @@
     db.collection("users").doc(currentUser.uid).collection("history")
       .orderBy("timestamp", "desc").get().then((querySnapshot) => {
         cachedHistoryDocs = [];
-        querySnapshot.forEach((doc) => {
-          cachedHistoryDocs.push(doc.data());
-        });
+        querySnapshot.forEach(doc => cachedHistoryDocs.push(doc.data()));
         renderProgressCards();
       }).catch(e => showLog("履歴読込エラー: " + e.message));
   }
@@ -532,35 +267,25 @@
   function renderProgressCards() {
     const gridEl = document.getElementById("progressGrid");
     gridEl.innerHTML = "";
-
     const stats = {};
-    Object.keys(modeDefinitions).forEach(m => {
-      stats[m] = { count: 0, lastDate: null };
-    });
-
+    Object.keys(modeDefinitions).forEach(m => stats[m] = { count: 0, lastDate: null });
     cachedHistoryDocs.forEach(item => {
-      const m = item.mode;
-      if (stats[m]) {
-        stats[m].count++;
+      if (stats[item.mode]) {
+        stats[item.mode].count++;
         if (item.timestamp) {
           const d = item.timestamp.toDate();
-          if (!stats[m].lastDate || d > stats[m].lastDate) {
-            stats[m].lastDate = d;
-          }
+          if (!stats[item.mode].lastDate || d > stats[item.mode].lastDate) stats[item.mode].lastDate = d;
         }
       }
     });
-
     Object.keys(modeDefinitions).forEach(m => {
-      const title = modeDefinitions[m];
       const data = stats[m];
       const dateStr = data.lastDate ? data.lastDate.toLocaleString("ja-JP") : "未実施";
-
       const card = document.createElement("div");
       card.className = "progress-card";
       card.innerHTML = `
         <div>
-          <h4>${title}</h4>
+          <h4>${modeDefinitions[m]}</h4>
           <p><strong>実施回数:</strong> ${data.count} 回</p>
           <p><strong>最終実施日時:</strong> ${dateStr}</p>
         </div>
@@ -571,72 +296,29 @@
   }
 
   async function startReviewMode(specificMode = null) {
-    if (!currentUser) {
-      return alert('復習機能を利用するにはGoogleログインが必要です。');
-    }
-    if (cachedHistoryDocs.length === 0) {
-      return alert('学習履歴がまだありません。まずは各モードで演習を行ってください。');
-    }
-
+    if (!currentUser) return alert('復習機能を利用するにはGoogleログインが必要です。');
+    if (cachedHistoryDocs.length === 0) return alert('学習履歴がまだありません。');
     const incorrectKeywords = ['不正解', '×', '惜しい', '改善', '誤り', '不十分', '減点', '修正'];
-    
     let pool = cachedHistoryDocs;
     if (specificMode) {
       pool = cachedHistoryDocs.filter(item => item.mode === specificMode);
-      if (pool.length === 0) {
-        return alert(`「${modeDefinitions[specificMode] || specificMode}」の学習履歴がまだありません。`);
-      }
+      if (pool.length === 0) return alert(`「${modeDefinitions[specificMode]}」の学習履歴がありません。`);
     }
-
-    const wrongList = pool.filter(item => {
-      const res = (item.resultText || '').toLowerCase();
-      return incorrectKeywords.some(kw => res.includes(kw));
-    });
-
-    if (specificMode && wrongList.length === 0) {
-      return alert(`「${modeDefinitions[specificMode] || specificMode}」の誤答履歴はありません。素晴らしい進捗です！`);
-    }
-
+    const wrongList = pool.filter(item => incorrectKeywords.some(kw => (item.resultText || '').toLowerCase().includes(kw)));
     const targetPool = wrongList.length > 0 ? wrongList : pool;
     const selectedItem = targetPool[Math.floor(Math.random() * targetPool.length)];
 
     currentMode = selectedItem.mode || 'vocab';
     currentPromptText = normalizeSpeakerLabels(selectedItem.topicText || '');
 
-    const testArea = document.getElementById('testArea');
-    testArea.classList.remove('hidden');
-    testArea.scrollIntoView({ behavior: 'smooth' });
-
+    document.getElementById('testArea').classList.remove('hidden');
+    document.getElementById('testArea').scrollIntoView({ behavior: 'smooth' });
     document.getElementById('resultArea').classList.add('hidden');
     document.getElementById('userInput').value = '';
     document.getElementById('resultContent').innerText = '';
+    document.getElementById('modeTitle').innerText = `🔁 復習モード [ ${modeDefinitions[currentMode]} ]`;
 
-    const modeName = modeDefinitions[currentMode] || currentMode;
-    document.getElementById('modeTitle').innerText = `🔁 復習モード [ ${modeName} ]`;
-
-    const audioBtn = document.getElementById('audioBtn');
-    const stopAudioBtn = document.getElementById('stopAudioBtn');
-    const audioStatus = document.getElementById('audioStatus');
-    const speechInputContainer = document.getElementById('speechInputContainer');
-    const topicTextEl = document.getElementById('topicText');
-    const loadingEl = document.getElementById('topicLoading');
-    const radioArea = document.getElementById('radioChoicesArea');
-    const comicContainer = document.getElementById('comicContainer');
-
-    loadingEl.classList.add('hidden');
-    audioBtn.classList.add('hidden');
-    stopAudioBtn.classList.add('hidden');
-    audioStatus.classList.add('hidden');
-    speechInputContainer.classList.add('hidden');
-    radioArea.innerHTML = '';
-    radioArea.classList.add('hidden');
-    comicContainer.classList.add('hidden');
-    comicContainer.innerHTML = '';
-    document.getElementById('submitTestBtn').style.display = 'block';
-
-    if (['shadowing', 'speaking_full'].includes(currentMode)) {
-      speechInputContainer.classList.remove('hidden');
-    }
+    resetTestUIForMode(currentMode);
 
     if (currentMode === 'speaking_full') {
       setupSpeakingFullFlow();
@@ -644,128 +326,54 @@
     }
 
     if (['listening', 'shadowing'].includes(currentMode)) {
-      audioBtn.classList.remove('hidden');
-      audioStatus.classList.remove('hidden');
-      topicTextEl.classList.add('hidden');
-
+      document.getElementById('audioBtn').classList.remove('hidden');
+      document.getElementById('audioStatus').classList.remove('hidden');
+      document.getElementById('topicText').classList.add('hidden');
       playAudio(() => {
-        audioStatus.classList.add('hidden');
-        topicTextEl.innerText = currentPromptText;
-        topicTextEl.classList.remove('hidden');
+        document.getElementById('audioStatus').classList.add('hidden');
+        document.getElementById('topicText').innerText = currentPromptText;
+        document.getElementById('topicText').classList.remove('hidden');
         checkAndRenderRadioChoices(currentPromptText);
       });
     } else {
-      topicTextEl.innerText = currentPromptText;
-      topicTextEl.classList.remove('hidden');
+      document.getElementById('topicText').innerText = currentPromptText;
+      document.getElementById('topicText').classList.remove('hidden');
       checkAndRenderRadioChoices(currentPromptText);
     }
   }
 
   async function analyzeLearningProgress() {
     const apiKey = document.getElementById('apiKey').value;
-    if (!apiKey) return alert('最初に右上へ Gemini API Key を入力してください。');
-    if (cachedHistoryDocs.length === 0) {
-      return alert('分析対象となる学習履歴がまだありません。まずは各モードで演習を行ってください。');
-    }
+    if (!apiKey) return alert('Gemini API Key を入力してください。');
+    if (cachedHistoryDocs.length === 0) return alert('学習履歴がありません。');
 
     const aiArea = document.getElementById('aiAnalysisArea');
     const aiResult = document.getElementById('aiAnalysisResult');
-    
     aiArea.classList.remove('hidden');
     aiResult.classList.remove('hidden');
-    aiResult.innerText = 'AIがあなたの学習履歴を分析中...';
+    aiResult.innerText = 'AIが学習履歴を分析中...';
     aiArea.scrollIntoView({ behavior: 'smooth' });
 
-    let historySummary = cachedHistoryDocs.map((h, idx) => {
-      return `[履歴 ${idx + 1}] モード: ${h.mode}, 日時: ${h.timestamp ? h.timestamp.toDate().toLocaleString() : '不明'}, お題抜粋: ${h.topicText.substring(0, 50)}..., ユーザー回答抜粋: ${h.userInput.substring(0, 50)}..., 評価・解説抜粋: ${h.resultText.substring(0, 80)}...`;
-    }).join('\n');
-
-    const analysisPrompt = `以下のユーザーの学習履歴データ（実施モード、解答、過去の評価結果）を統合的に分析してください。
-1. 7つの分野（①語彙, ②読解, ③意見論述, ④要約, ⑤リスニング, ⑥シャドーイング, ⑦スピーキング）における得意なテスト・分野と苦手なテスト・分野の特定
-2. 苦手分野を克服し、英検準1級に合格するための具体的かつ実践的な学習サポート案・アプローチ指導
-丁寧でモチベーションが高まる日本語で出力してください。
-
-【ユーザーの学習履歴データ】
-${historySummary}`;
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${apiKey.trim()}&alt=sse`;
-
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemInstructions }] },
-          contents: [{ parts: [{ text: analysisPrompt }] }]
-        })
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error?.message || `API Error (${response.status})`);
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let buffer = '';
-      let fullText = '';
-      aiResult.innerText = '';
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('data:')) {
-            const jsonStr = trimmed.replace(/^data:\s*/, '');
-            if (jsonStr === '[DONE]') continue;
-
-            try {
-              const data = JSON.parse(jsonStr);
-              const textChunk = data.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (textChunk) {
-                fullText += textChunk;
-                aiResult.innerText = fullText;
-              }
-            } catch (e) {
-            }
-          }
-        }
-      }
-    } catch (error) {
-      aiResult.innerText = '分析中にエラーが発生しました: ' + error.message;
-    }
+    let historySummary = cachedHistoryDocs.map((h, idx) => `[履歴 ${idx + 1}] モード: ${h.mode}, お題: ${h.topicText.substring(0, 40)}...`).join('\n');
+    const analysisPrompt = `以下の学習履歴を分析し、英検準1級合格に向けた得意・苦手分析と学習サポート案を日本語で出力してください。\n${historySummary}`;
+    callGeminiStreamHelper(analysisPrompt, apiKey, aiResult);
   }
 
   let currentMode = '';
   let currentPromptText = '';
-  
-  // ==========================================
-  // 4. 音声認識（STT）テキスト重複バグ修正 ＆ 継続・中間結果制御
-  // ==========================================
   let recognition = null;
   let isRecognizing = false;
 
   function toggleSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert('お使いのブラウザは音声認識（Web Speech API）に対応していません。Google ChromeやSafariをご利用ください。');
-      return;
-    }
+    if (!SpeechRecognition) return alert('お使いのブラウザは音声認識に対応していません。');
 
     const micBtn = document.getElementById('micBtn');
     const micStatus = document.getElementById('micStatus');
     const userInput = document.getElementById('userInput');
 
     if (isRecognizing) {
-      if (recognition) {
-        recognition.stop();
-      }
+      if (recognition) recognition.stop();
       return;
     }
 
@@ -773,8 +381,6 @@ ${historySummary}`;
     recognition.lang = 'en-US';
     recognition.continuous = true;
     recognition.interimResults = true;
-
-    // 既に手動入力されていたテキストをベースとして保持
     let baseTranscript = userInput.value ? userInput.value.trim() + ' ' : '';
 
     recognition.onstart = () => {
@@ -788,85 +394,45 @@ ${historySummary}`;
     recognition.onresult = (event) => {
       let interim = '';
       let final = '';
-
       for (let i = event.resultIndex; i < event.results.length; ++i) {
-        const transcriptChunk = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          final += transcriptChunk;
-        } else {
-          interim += transcriptChunk;
-        }
+        if (event.results[i].isFinal) final += event.results[i][0].transcript;
+        else interim += event.results[i][0].transcript;
       }
-
-      // 確定した結果をベースに蓄積
-      if (final) {
-        baseTranscript += final.trim() + ' ';
-      }
-
-      // 最新のベース確定分に現在の未確定（interim）を一時的に結合して表示（重複ループバグの完全防止）
+      if (final) baseTranscript += final.trim() + ' ';
       userInput.value = (baseTranscript + interim).trim();
     };
 
-    recognition.onerror = (event) => {
-      showLog("音声認識エラー: " + event.error);
-      isRecognizing = false;
-      micBtn.classList.remove('recording');
-      micBtn.innerText = '🎤 英語で話す (音声入力)';
-      micStatus.classList.add('hidden');
-    };
-
-    recognition.onend = () => {
-      isRecognizing = false;
-      micBtn.classList.remove('recording');
-      micBtn.innerText = '🎤 英語で話す (音声入力)';
-      micStatus.classList.add('hidden');
-    };
-
-    try {
-      recognition.start();
-    } catch (e) {
-      showLog("音声認識起動エラー: " + e.message);
-      isRecognizing = false;
-      micBtn.classList.remove('recording');
-      micBtn.innerText = '🎤 英語で話す (音声入力)';
-      micStatus.classList.add('hidden');
-    }
+    recognition.onerror = () => stopRecognitionUI();
+    recognition.onend = () => stopRecognitionUI();
+    recognition.start();
   }
 
-  const systemInstructions = `あなたは英検準1級（CEFR B2）の採点・指導エキスパートです。
-ユーザーの入力に対して、評価・アドバイス・解説・模範解答を丁寧な日本語で分かりやすく出力してください。
-リスニングやスピーキング用の英文を生成する際は、音声読み上げエンジンが自然なアクセントと間（ポーズ）で発声できるよう、適切なカンマ(,)やピリオド(.)、感嘆符(!)、疑問符(?)を意識して自然な口語英文を作成してください。
-※ユーザー入力は音声認識（STT）された英語テキストです。STTの特性上、L/Rの誤認識や単語の分割が生じている可能性があります。文脈から本来の英語発話を推測して評価してください。`;
+  function stopRecognitionUI() {
+    isRecognizing = false;
+    const micBtn = document.getElementById('micBtn');
+    if (micBtn) {
+      micBtn.classList.remove('recording');
+      micBtn.innerText = '🎤 英語で話す (音声入力)';
+    }
+    const micStatus = document.getElementById('micStatus');
+    if (micStatus) micStatus.classList.add('hidden');
+  }
+
+  const systemInstructions = `あなたは英検準1級（CEFR B2）の採点・指導エキスパートです。丁寧な日本語で評価・アドバイス・模範解答を出力してください。`;
 
   function getBestEnglishVoice(synth) {
     const voices = synth.getVoices();
     if (!voices || voices.length === 0) return null;
     const englishVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
-    if (englishVoices.length === 0) return voices[0];
-
-    const scoredVoices = englishVoices.map(v => {
-      let score = 0;
-      const name = (v.name || '').toLowerCase();
-      if (name.includes('enhanced')) score += 10;
-      if (name.includes('premium')) score += 10;
-      if (name.includes('natural') || name.includes('online') || name.includes('neural')) score += 8;
-      if (name.includes('google')) score += 6;
-      if (name.includes('siri') || name.includes('samantha') || name.includes('microsoft')) score += 4;
-      if (v.lang.toLowerCase() === 'en-us') score += 2;
-      return { voice: v, score };
-    });
-
-    scoredVoices.sort((a, b) => b.score - a.score);
-    return scoredVoices[0].score > 0 ? scoredVoices[0].voice : englishVoices[0];
+    return englishVoices.length > 0 ? englishVoices[0] : voices[0];
   }
 
-  // ==========================================
-  // 3 & 5. 音声読み上げ（TTS）の中断・停止機能 ＆ 表記・誤読修正
-  // ==========================================
-  function stopAudio() {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
+  function stopSpeech() {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    stopAudioUI();
+  }
+
+  function stopAudioUI() {
     const stopAudioBtn = document.getElementById('stopAudioBtn');
     const audioStatus = document.getElementById('audioStatus');
     if (stopAudioBtn) stopAudioBtn.classList.add('hidden');
@@ -875,118 +441,41 @@ ${historySummary}`;
 
   function playAudio(onEndCallback) {
     if (!('speechSynthesis' in window)) {
-      alert('お使いのブラウザは音声読み上げに対応していません。');
       if (onEndCallback) onEndCallback();
       return;
     }
     const synth = window.speechSynthesis;
     synth.cancel();
 
-    const stopAudioBtn = document.getElementById('stopAudioBtn');
-    const audioStatus = document.getElementById('audioStatus');
-    if (stopAudioBtn) stopAudioBtn.classList.remove('hidden');
-    if (audioStatus) audioStatus.classList.remove('hidden');
+    document.getElementById('stopAudioBtn').classList.remove('hidden');
+    document.getElementById('audioStatus').classList.remove('hidden');
 
-    let textToProcess = currentPromptText || '';
-
-    // 5-1. 「No. 1」「No.1」などの番号表記を「Number 1」に変換
-    textToProcess = textToProcess.replace(/No\.\s*(\d+)/gi, 'Number $1');
-
-    // 5-2. 「#」および「*」などのマークダウン記号を完全除去
-    textToProcess = textToProcess
-      .replace(/#/g, '')
-      .replace(/\*/g, '')
-      .replace(/[_~]/g, '');
-
-    const listeningKeywordIndex = textToProcess.indexOf('Listening Section');
-    if (listeningKeywordIndex !== -1) {
-      textToProcess = textToProcess.substring(listeningKeywordIndex);
-    }
-
-    let cleanText = textToProcess
-      .replace(/^\s*[-+]\s+/gm, '')
-      .trim();
-
-    const speakerRegex = /(?:^|\n)\s*(Man|Woman|Narrator|[AB]):/gi;
-    let parts = [];
-    let lastIndex = 0;
-    let match;
-
-    while ((match = speakerRegex.exec(cleanText)) !== null) {
-      if (match.index > lastIndex) {
-        let chunk = cleanText.substring(lastIndex, match.index).trim();
-        if (chunk) parts.push({ type: 'text', content: chunk });
-      }
-      let speakerLabel = match[0].trim();
-      parts.push({ type: 'speaker', content: speakerLabel });
-      lastIndex = speakerRegex.lastIndex;
-    }
-    if (lastIndex < cleanText.length) {
-      let remaining = cleanText.substring(lastIndex).trim();
-      if (remaining) parts.push({ type: 'text', content: remaining });
-    }
-
-    if (parts.length === 0 && cleanText) {
-      parts.push({ type: 'text', content: cleanText });
-    }
-
+    let textToProcess = (currentPromptText || '').replace(/No\.\s*(\d+)/gi, 'Number $1').replace(/[#*~_]/g, '');
+    let cleanText = textToProcess.replace(/^\s*[-+]\s+/gm, '').trim();
     const chosenVoice = getBestEnglishVoice(synth);
 
-    let queue = [];
-    parts.forEach((p) => {
-      if (p.type === 'speaker') {
-        queue.push({ text: p.content, isSpeaker: true });
-      } else {
-        let subChunks = p.content.split(/(?<=[.!?])\s+|\n+/);
-        subChunks.forEach(sub => {
-          if (sub.trim()) {
-            queue.push({ text: sub.trim(), isSpeaker: false });
-          }
-        });
-      }
-    });
-
-    if (queue.length === 0) {
-      if (stopAudioBtn) stopAudioBtn.classList.add('hidden');
-      if (audioStatus) audioStatus.classList.add('hidden');
+    let chunks = cleanText.split(/(?<=[.!?])\s+|\n+/).filter(s => s.trim().length > 0);
+    if (chunks.length === 0) {
+      stopAudioUI();
       if (onEndCallback) onEndCallback();
       return;
     }
 
     let currentIndex = 0;
-
     function processQueue() {
-      if (currentIndex >= queue.length) {
-        if (stopAudioBtn) stopAudioBtn.classList.add('hidden');
-        if (audioStatus) audioStatus.classList.add('hidden');
+      if (currentIndex >= chunks.length) {
+        stopAudioUI();
         if (onEndCallback) onEndCallback();
         return;
       }
-
-      let item = queue[currentIndex++];
-      const sanitizedUtteranceText = item.text.replace(/No\.\s*(\d+)/gi, 'Number $1').replace(/[#*]/g, '');
-      let uttr = new SpeechSynthesisUtterance(sanitizedUtteranceText);
+      let uttr = new SpeechSynthesisUtterance(chunks[currentIndex++]);
       uttr.lang = 'en-US';
       uttr.rate = 0.9;
       if (chosenVoice) uttr.voice = chosenVoice;
-
-      uttr.onend = () => {
-        if (item.isSpeaker) {
-          setTimeout(() => {
-            processQueue();
-          }, 1000);
-        } else {
-          processQueue();
-        }
-      };
-
-      uttr.onerror = () => {
-        processQueue();
-      };
-
+      uttr.onend = processQueue;
+      uttr.onerror = processQueue;
       synth.speak(uttr);
     }
-
     processQueue();
   }
 
@@ -997,36 +486,23 @@ ${historySummary}`;
   function checkAndRenderRadioChoices(text) {
     const radioArea = document.getElementById('radioChoicesArea');
     radioArea.innerHTML = '';
-    
-    const hasChoices = /(?:1[.)]|2[.)]|3[.)]|4[.)]|\(1\)|\(2\)|\(3\)|\(4\)|\b1\b.*\b2\b.*\b3\b.*\b4\b)/is.test(text);
-
-    if ((hasChoices || currentMode === 'vocab' || currentMode === 'listening' || currentMode === 'reading') && 
-        (currentMode === 'vocab' || currentMode === 'listening' || currentMode === 'reading')) {
+    const hasChoices = /(?:1[.)]|2[.)]|3[.)]|4[.)]|\(1\)|\(2\)|\(3\)|\(4\))/is.test(text);
+    if (hasChoices || ['vocab', 'listening', 'reading'].includes(currentMode)) {
       const container = document.createElement('div');
       container.className = 'radio-choices-container';
-      
-      const titleLabel = document.createElement('div');
-      titleLabel.style.width = '100%';
-      titleLabel.style.fontSize = '0.85rem';
-      titleLabel.style.color = '#64748b';
-      titleLabel.innerHTML = '💡 選択肢を選択すると解答欄に自動入力されます：';
-      container.appendChild(titleLabel);
-
+      container.innerHTML = '<div style="width:100%; font-size:0.85rem; color:#64748b;">💡 選択肢を選択すると解答欄に自動入力されます：</div>';
       for (let i = 1; i <= 4; i++) {
         const label = document.createElement('label');
         label.className = 'radio-choice-label';
-        
         const radio = document.createElement('input');
         radio.type = 'radio';
         radio.name = 'quizChoice';
         radio.value = i;
         radio.onchange = () => selectOption(i);
-
         label.appendChild(radio);
         label.appendChild(document.createTextNode(` 選択肢 ${i} `));
         container.appendChild(label);
       }
-
       radioArea.appendChild(container);
       radioArea.classList.remove('hidden');
     } else {
@@ -1034,39 +510,36 @@ ${historySummary}`;
     }
   }
 
-  async function selectMode(mode) {
-    currentMode = mode;
-    const testArea = document.getElementById('testArea');
-    testArea.classList.remove('hidden');
-    testArea.scrollIntoView({ behavior: 'smooth' });
-
-    document.getElementById('resultArea').classList.add('hidden');
-    document.getElementById('userInput').value = '';
-    document.getElementById('resultContent').innerText = '';
-    
+  function resetTestUIForMode(mode) {
     const radioArea = document.getElementById('radioChoicesArea');
+    const comicContainer = document.getElementById('comicContainer');
+    const speechInputContainer = document.getElementById('speechInputContainer');
+    const submitBtn = document.getElementById('submitTestBtn');
+    
     radioArea.innerHTML = '';
     radioArea.classList.add('hidden');
-
-    const comicContainer = document.getElementById('comicContainer');
     comicContainer.innerHTML = '';
     comicContainer.classList.add('hidden');
-    document.getElementById('submitTestBtn').style.display = 'block';
-
-    const speechInputContainer = document.getElementById('speechInputContainer');
     speechInputContainer.classList.add('hidden');
+    submitBtn.style.display = 'block';
+    submitBtn.innerText = '送信して判定・解説を表示';
 
     if (['shadowing', 'speaking_full'].includes(mode)) {
       speechInputContainer.classList.remove('hidden');
     }
+  }
 
-    const titles = {
-      'vocab': '① 短文空所補充 (語彙)', 'reading': '② 長文空所補充・内容一致 (読解)',
-      'writing_opinion': '③ 意見論述 (Writing)', 'writing_summary': '④ 要約問題 (Writing)',
-      'listening': '⑤ 会話・文・Real-Life (Listening)', 'shadowing': '⑥ シャドーイング・AI解説',
-      'speaking_full': '⑦ 4コマナレーション ＆ Q&Aシミュレータ'
-    };
-    document.getElementById('modeTitle').innerText = titles[mode];
+  async function selectMode(mode) {
+    currentMode = mode;
+    document.getElementById('testArea').classList.remove('hidden');
+    document.getElementById('testArea').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('resultArea').classList.add('hidden');
+    document.getElementById('userInput').value = '';
+    document.getElementById('resultContent').innerText = '';
+
+    resetTestUIForMode(mode);
+
+    document.getElementById('modeTitle').innerText = modeDefinitions[mode];
 
     if (mode === 'speaking_full') {
       setupSpeakingFullFlow();
@@ -1075,34 +548,24 @@ ${historySummary}`;
     }
   }
 
-  // ==========================================
-  // 2. ⑦ステップ化ロジックの管理（Step 1〜6）
-  // ==========================================
-  let speakingStep = 1; // [Step 1]〜[Step 6]
+  // ⑦ 4コマシミュレータ ステート管理
+  let speakingStep = 1;
   let speakingData = {};
 
   function setupSpeakingFullFlow() {
-    speakingStep = 1; // [Step 1] 4コマ漫画の提示と2分間の準備時間指示
-    const topicTextEl = document.getElementById('topicText');
-    const loadingEl = document.getElementById('topicLoading');
-    const audioBtn = document.getElementById('audioBtn');
-    const stopAudioBtn = document.getElementById('stopAudioBtn');
-    const audioStatus = document.getElementById('audioStatus');
-    const speechInputContainer = document.getElementById('speechInputContainer');
-    const comicContainer = document.getElementById('comicContainer');
-
-    loadingEl.classList.add('hidden');
-    audioBtn.classList.remove('hidden');
-    audioStatus.classList.remove('hidden');
-    speechInputContainer.classList.add('hidden'); // Step 1ではまだマイク非表示（Step 2で表示）
+    speakingStep = 1;
+    document.getElementById('topicLoading').classList.add('hidden');
+    document.getElementById('audioBtn').classList.remove('hidden');
+    document.getElementById('audioStatus').classList.remove('hidden');
+    document.getElementById('speechInputContainer').classList.remove('hidden'); // Requirement 3
 
     speakingData = {
       title: "An Office Environmental Initiative (GreenOffice)",
       panels: [
-        { num: 1, desc: "One day, a manager announced a new eco-friendly policy to reduce paper waste in the office.", speech: "We must cut down on paper usage.", emoji1: "👨‍💼", emoji2: "📄", emotion: "😊" },
-        { num: 2, desc: "The next week, employees started using digital documents instead of printing reports.", speech: "This tablet is much more convenient.", emoji1: "👩‍💻", emoji2: "💻", emotion: "😊" },
-        { num: 3, desc: "A few months later, the company successfully reduced its electricity and paper costs significantly.", speech: "Our eco-efforts are paying off!", emoji1: "📈", emoji2: "⚡", emotion: "😃" },
-        { num: 4, desc: "However, some employees began complaining that working entirely digitally caused eye strain.", speech: "My eyes hurt from staring at screens all day...", emoji1: "💻", emoji2: "👓", emotion: "😫" }
+        { num: 1, desc: "A manager announced a new eco-friendly policy to reduce paper waste.", speech: "We must cut down on paper usage.", emoji1: "👨‍💼", emoji2: "📄", emotion: "😊" },
+        { num: 2, desc: "Employees started using digital documents instead of printing reports.", speech: "This tablet is much more convenient.", emoji1: "👩‍💻", emoji2: "💻", emotion: "😊" },
+        { num: 3, desc: "The company successfully reduced electricity and paper costs.", speech: "Our eco-efforts are paying off!", emoji1: "📈", emoji2: "⚡", emotion: "😃" },
+        { num: 4, desc: "Some employees complained that working digitally caused eye strain.", speech: "My eyes hurt from staring at screens...", emoji1: "💻", emoji2: "👓", emotion: "😫" }
       ],
       questions: [
         "No. 1: (Based on the 4th panel) Please describe the situation.",
@@ -1112,20 +575,18 @@ ${historySummary}`;
       ]
     };
 
-    currentPromptText = `[Step 1: Speaking Test - 4-Panel Comic Narration]\nTitle: ${speakingData.title}\nPanels:\n` + 
+    currentPromptText = `[Step 1: Speaking Test - 4-Panel Comic Narration]\nTitle: ${speakingData.title}\n` + 
       speakingData.panels.map(p => `Panel ${p.num}: ${p.desc} (Speech: "${p.speech}")`).join('\n') +
       `\n\nQuestions:\n` + speakingData.questions.join('\n');
 
     document.getElementById('modeTitle').innerText = "⑦ 4コマナレーション ＆ Q&Aシミュレータ [ Step 1: 4コマ漫画の提示と準備 ]";
 
-    topicTextEl.innerHTML = `
-      <div class="timer-badge">⏳ [Step 1] 準備時間: 2分間（ナレーションは次のStep 2で行います）</div>
-      <p><strong>【面接官の指示】</strong><br>
-      Please look at the four-panel comic. You have 2 minutes to prepare. Please start when you are ready.</p>
-      <p style="font-size:1.05rem; font-weight:bold; color:var(--primary-color);">タイトル: ${speakingData.title.replace(/[#*]/g, '')}</p>
+    document.getElementById('topicText').innerHTML = `
+      <div class="timer-badge">⏳ [Step 1] 準備時間: 2分間（ナレーションはマイクを使って自由に行ってください）</div>
+      <p><strong>【面接官の指示】</strong> Please look at the four-panel comic. You have 2 minutes to prepare.</p>
+      <p style="font-size:1.05rem; font-weight:bold; color:var(--primary-color);">タイトル: ${speakingData.title}</p>
     `;
 
-    // ⑦ 4コマ漫画のビジュアル描画（イラスト風レイアウト・ピクトグラム・フキダシ）
     let comicHTML = '<div class="comic-grid">';
     speakingData.panels.forEach(p => {
       comicHTML += `
@@ -1133,132 +594,119 @@ ${historySummary}`;
           <div class="comic-panel-top-badge">Panel ${p.num}</div>
           <div class="comic-desc-arrow">💬 <span>${p.desc}</span></div>
           <div class="comic-illustration-box">
-            <div class="comic-emoji-row">
-              <span>${p.emoji1}</span>
-              <span style="font-size: 1.2rem; color: #16a34a;">➡</span>
-              <span>${p.emoji2}</span>
-            </div>
-            <div style="font-size: 1rem; margin-top: 4px; color: #0f172a;">表情: ${p.emotion}</div>
+            <div class="comic-emoji-row"><span>${p.emoji1}</span><span>➡</span><span>${p.emoji2}</span></div>
           </div>
           <div class="speech-bubble">“ ${p.speech} ”</div>
         </div>
       `;
     });
     comicHTML += '</div>';
-    
-    comicContainer.innerHTML = comicHTML;
-    comicContainer.classList.remove('hidden');
-    topicTextEl.classList.remove('hidden');
+
+    document.getElementById('comicContainer').innerHTML = comicHTML;
+    document.getElementById('comicContainer').classList.remove('hidden');
+    document.getElementById('topicText').classList.remove('hidden');
 
     document.getElementById('userInput').value = '';
-    document.getElementById('userInput').placeholder = "Step 1確認後、下のボタンを押してStep 2（ナレーション入力）へ進んでください...";
-    document.getElementById('submitTestBtn').innerText = "Step 2: ナレーション入力へ進む ➔";
+    document.getElementById('userInput').placeholder = "ここにあなたのナレーション英文を入力、または音声入力してください...";
+    document.getElementById('submitTestBtn').innerText = "Step 2: ナレーションを送信してAI判定を見る ➔";
 
-    playAudio(() => {
-      audioStatus.classList.add('hidden');
-    });
+    playAudio(() => document.getElementById('audioStatus').classList.add('hidden'));
   }
 
   async function callGemini(promptText, apiKey) {
-    const trimmedKey = apiKey ? apiKey.trim() : '';
-    if (!trimmedKey) {
-      throw new Error("Gemini API Keyが入力されていません。");
-    }
-
-    const safePrompt = promptText && typeof promptText === 'string' && promptText.trim() !== '' 
-      ? promptText.trim() 
-      : "英検準1級の対策問題を1問作成してください。";
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(trimmedKey)}`;
-    
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
     const response = await fetch(url, {
       method: 'POST', 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         systemInstruction: { parts: [{ text: systemInstructions }] }, 
-        contents: [{ parts: [{ text: safePrompt }] }] 
+        contents: [{ parts: [{ text: promptText }] }] 
       })
     });
-
-    if (!response.ok) {
-      let errorMsg = `API Error (${response.status})`;
-      try {
-        const errData = await response.json();
-        if (errData.error?.message) {
-          errorMsg = errData.error.message;
-        }
-      } catch (e) {}
-      throw new Error(errorMsg);
-    }
-
+    if (!response.ok) throw new Error(`API Error (${response.status})`);
     const data = await response.json();
-    if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
-      throw new Error("AIからの有効な応答データが得られませんでした。");
-    }
     return data.candidates[0].content.parts[0].text;
+  }
+
+  async function callGeminiStreamHelper(promptText, apiKey, targetElement) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${encodeURIComponent(apiKey.trim())}&alt=sse`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemInstructions }] },
+        contents: [{ parts: [{ text: promptText }] }]
+      })
+    });
+    if (!response.ok) throw new Error(`API Error (${response.status})`);
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+    let fullText = '';
+    targetElement.innerText = '';
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (line.trim().startsWith('data:')) {
+          const jsonStr = line.trim().replace(/^data:\s*/, '');
+          if (jsonStr === '[DONE]') continue;
+          try {
+            const data = JSON.parse(jsonStr);
+            const textChunk = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (textChunk) {
+              fullText += textChunk;
+              targetElement.innerText = fullText;
+            }
+          } catch (e) {}
+        }
+      }
+    }
+    return fullText;
   }
 
   async function generateNewQuestion() {
     const apiKey = document.getElementById('apiKey').value;
-    if (!apiKey || !apiKey.trim()) {
-      alert('最初に右上へ Gemini API Key を入力してください。');
-      return;
-    }
+    if (!apiKey) return alert('Gemini API Key を入力してください。');
     
-    window.speechSynthesis.cancel();
-    if (isRecognizing && recognition) {
-      recognition.stop();
+    stopSpeech();
+    if (isRecognizing && recognition) recognition.stop();
+
+    if (currentMode === 'speaking_full') {
+      setupSpeakingFullFlow();
+      return;
     }
 
     const topicTextEl = document.getElementById('topicText');
     const loadingEl = document.getElementById('topicLoading');
-    const audioBtn = document.getElementById('audioBtn');
-    const stopAudioBtn = document.getElementById('stopAudioBtn');
-    const audioStatus = document.getElementById('audioStatus');
-    const speechInputContainer = document.getElementById('speechInputContainer');
-    const radioArea = document.getElementById('radioChoicesArea');
-    const comicContainer = document.getElementById('comicContainer');
-
     topicTextEl.innerText = '';
     loadingEl.classList.remove('hidden');
-    audioBtn.classList.add('hidden');
-    stopAudioBtn.classList.add('hidden');
-    audioStatus.classList.add('hidden');
-    radioArea.innerHTML = '';
-    radioArea.classList.add('hidden');
-    comicContainer.innerHTML = '';
-    comicContainer.classList.add('hidden');
-    document.getElementById('submitTestBtn').style.display = 'block';
-
-    speechInputContainer.classList.add('hidden');
-    if (currentMode === 'shadowing') {
-      speechInputContainer.classList.remove('hidden');
-    }
+    document.getElementById('audioBtn').classList.add('hidden');
+    document.getElementById('audioStatus').classList.add('hidden');
 
     const prompts = {
-      'vocab': '英検準1級レベルの短文空所補充問題（語彙）を1問作成してください。問題文と4つの選択肢(1-4)のみを出力し、正解・和訳・解説は一切出力しないでください。',
-      'reading': '英検準1級レベルの長文読解パッセージ1つと設問を作成してください。正解や解説は出力しないでください。',
-      'writing_opinion': '英検準1級ライティング（意見論述）のTOPIC（お題）を1つ生成してください。模範解答は含めないでください。',
-      'writing_summary': '英検準1級要約問題用の英文（100〜120語程度）を作成してください。要約例は含めないでください。',
-      'listening': '英検準1級準拠のリスニング問題です。冒頭に「英検準1級準拠のリスニング問題です。」という導入・説明文を出力し、その直後に「Listening Section:」という見出しを置いて会話スクリプト・設問・選択肢(1-4)を出力してください。会話文中の各発言の前に必ず「Man:」または「Woman:」という話者名を明記してください（M:やW:は使用禁止）。音声読み上げが自然になるよう短い文で適切なカンマやピリオドを入れてください。正解や解説は出力しないでください。',
-      'shadowing': 'シャドーイング練習用の英検準1級レベルの自然な英文（50語程度）を1つ提示してください。音声読み上げのリズムが良い文章にし、解説は出力しないでください。'
+      'vocab': '英検準1級レベルの短文空所補充問題（語彙）を1問作成してください。問題文と4つの選択肢(1-4)のみを出力してください。',
+      'reading': '英検準1級レベルの長文読解パッセージ1つと設問を作成してください。',
+      'writing_opinion': '英検準1級ライティング（意見論述）のTOPIC（お題）を1つ生成してください。',
+      'writing_summary': '英検準1級要約問題用の英文（100〜120語程度）を作成してください。',
+      'listening': '英検準1級準拠のリスニング問題です。「Listening Section:」という見出しを置いて会話スクリプト・選択肢を出力してください。話者は「Man:」または「Woman:」としてください。',
+      'shadowing': 'シャドーイング用の英検準1級レベルの英文（50語程度）を1つ作成してください。'
     };
 
-    const targetPrompt = prompts[currentMode] || '英検準1級の英語長文問題を1問作成してください。';
-
     try {
-      let rawText = await callGemini(targetPrompt, apiKey);
+      let rawText = await callGemini(prompts[currentMode] || prompts['vocab'], apiKey);
       currentPromptText = normalizeSpeakerLabels(rawText);
-      
       loadingEl.classList.add('hidden');
 
       if (['listening', 'shadowing'].includes(currentMode)) {
-        audioBtn.classList.remove('hidden');
-        audioStatus.classList.remove('hidden');
+        document.getElementById('audioBtn').classList.remove('hidden');
+        document.getElementById('audioStatus').classList.remove('hidden');
         topicTextEl.classList.add('hidden');
-
         playAudio(() => {
-          audioStatus.classList.add('hidden');
+          document.getElementById('audioStatus').classList.add('hidden');
           topicTextEl.innerText = currentPromptText;
           topicTextEl.classList.remove('hidden');
           checkAndRenderRadioChoices(currentPromptText);
@@ -1268,81 +716,22 @@ ${historySummary}`;
         topicTextEl.classList.remove('hidden');
         checkAndRenderRadioChoices(currentPromptText);
       }
-
-      document.getElementById('testArea').scrollIntoView({ behavior: 'smooth' });
-
     } catch (error) {
       loadingEl.classList.add('hidden');
-      topicTextEl.classList.remove('hidden');
-      topicTextEl.innerText = 'エラーが発生しました: ' + error.message;
+      topicTextEl.innerText = 'エラー: ' + error.message;
     }
   }
 
   async function submitToGeminiStream() {
     const apiKey = document.getElementById('apiKey').value;
-    if (!apiKey || !apiKey.trim()) {
-      alert('Gemini API Keyを入力してください。');
-      return;
-    }
+    if (!apiKey) return alert('Gemini API Key を入力してください。');
+    if (isRecognizing && recognition) recognition.stop();
 
-    if (isRecognizing && recognition) {
-      recognition.stop();
-    }
+    const userInput = document.getElementById('userInput').value.trim();
+    if (!userInput) return alert('回答を入力または音声入力してください。');
 
-    // ⑦ステップ化のスイッチ処理 (Step 1〜6)
     if (currentMode === 'speaking_full') {
-      if (speakingStep === 1) {
-        // Step 1 ➔ Step 2 へ移行
-        speakingStep = 2;
-        renderSpeakingStep2NarrationInput();
-        return;
-      } else if (speakingStep === 2) {
-        // Step 2 ナレーション入力完了 ➔ Step 3 AI採点・アドバイス表示
-        const userInput = document.getElementById('userInput').value;
-        if (!userInput || !userInput.trim()) {
-          alert('ナレーションの英文を入力または音声入力してください。');
-          return;
-        }
-        await handleSpeakingStep3NarrationEvaluation(userInput.trim(), apiKey.trim());
-        return;
-      } else if (speakingStep === 3) {
-        // Step 3 完了後 ➔ Step 4 Question No.1 出題・回答へ
-        speakingStep = 4;
-        renderSpeakingStep4Q1();
-        return;
-      } else if (speakingStep === 4) {
-        // Step 4 Q1回答送信 ➔ 評価 ➔ Step 5へ
-        const userInput = document.getElementById('userInput').value;
-        if (!userInput || !userInput.trim()) {
-          alert('質問に対する回答を入力してください。');
-          return;
-        }
-        await handleSpeakingStepQnAEvaluation(1, userInput.trim(), apiKey.trim());
-        return;
-      } else if (speakingStep === 5) {
-        // Step 5 Q2回答送信 ➔ 評価 ➔ Step 6へ
-        const userInput = document.getElementById('userInput').value;
-        if (!userInput || !userInput.trim()) {
-          alert('質問に対する回答を入力してください。');
-          return;
-        }
-        await handleSpeakingStepQnAEvaluation(2, userInput.trim(), apiKey.trim());
-        return;
-      } else if (speakingStep === 6) {
-        // Step 6 Q3 & Q4回答送信 ➔ 総合評価
-        const userInput = document.getElementById('userInput').value;
-        if (!userInput || !userInput.trim()) {
-          alert('質問に対する回答を入力してください。');
-          return;
-        }
-        await handleSpeakingStep6FinalEvaluation(userInput.trim(), apiKey.trim());
-        return;
-      }
-    }
-
-    const userInput = document.getElementById('userInput').value;
-    if (!userInput || !userInput.trim()) {
-      alert('回答を入力または音声入力してください。');
+      await handleSpeakingWorkflow(userInput, apiKey.trim());
       return;
     }
 
@@ -1354,100 +743,19 @@ ${historySummary}`;
     loadingText.classList.remove('hidden');
     resultContent.innerText = '';
 
-    const safePromptText = currentPromptText && currentPromptText.trim() !== '' ? currentPromptText.trim() : "（問題文なし）";
-    const safeUserAnswer = userInput.trim();
-
-    const evalPrompt = `【問題】\n${safePromptText}\n\n【ユーザーの解答】\n${safeUserAnswer}\n\n【指示】\n上記解答を英検準1級の基準で詳細に採点・添削・解説してください。\n1. 正解とユーザー解答の正誤判定・総合スコア\n2. 観点別評価および各選択肢・ポイントの解説\n3. 改善のための模範解答・和訳`;
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${encodeURIComponent(apiKey.trim())}&alt=sse`;
+    const evalPrompt = `【問題】\n${currentPromptText}\n\n【ユーザーの解答】\n${userInput}\n\n【指示】\n英検準1級の基準で詳細に採点・添削・解説してください。`;
 
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemInstructions }] },
-          contents: [{ parts: [{ text: evalPrompt }] }]
-        })
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error?.message || `API Error (${response.status})`);
-      }
-
+      const fullText = await callGeminiStreamHelper(evalPrompt, apiKey.trim(), resultContent);
       loadingText.classList.add('hidden');
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let buffer = '';
-      let fullText = '';
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('data:')) {
-            const jsonStr = trimmed.replace(/^data:\s*/, '');
-            if (jsonStr === '[DONE]') continue;
-
-            try {
-              const data = JSON.parse(jsonStr);
-              const textChunk = data.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (textChunk) {
-                fullText += textChunk;
-                resultContent.innerText = fullText;
-              }
-            } catch (e) {
-            }
-          }
-        }
-      }
-
-      if (typeof saveToFirestore === 'function') {
-        saveToFirestore(currentMode, safePromptText, safeUserAnswer, fullText);
-      }
+      saveToFirestore(currentMode, currentPromptText, userInput, fullText);
     } catch (error) {
       loadingText.classList.add('hidden');
-      resultContent.innerText = 'エラーが発生しました: ' + error.message;
+      resultContent.innerText = 'エラー: ' + error.message;
     }
   }
 
-  // ==========================================
-  // [Step 2] 2分間のナレーション入力フェーズ
-  // ==========================================
-  function renderSpeakingStep2NarrationInput() {
-    const topicTextEl = document.getElementById('topicText');
-    const comicContainer = document.getElementById('comicContainer');
-    const speechInputContainer = document.getElementById('speechInputContainer');
-
-    comicContainer.classList.add('hidden');
-    speechInputContainer.classList.remove('hidden');
-
-    document.getElementById('modeTitle').innerText = "⑦ 4コマナレーション ＆ Q&Aシミュレータ [ Step 2: ナレーション入力 ]";
-
-    topicTextEl.innerHTML = `
-      <div class="timer-badge">⏳ [Step 2] ナレーション入力制限時間: 2分</div>
-      <p><strong>【指示】</strong><br>
-      4コマ漫画の状況描写（ナレーション）を英語で入力するか、下のマイクボタンを押して音声入力してください。</p>
-    `;
-
-    document.getElementById('userInput').value = '';
-    document.getElementById('userInput').placeholder = "ここにあなたのナレーション英文を入力（または「🎤 英語で話す」ボタンを使用）...";
-    document.getElementById('submitTestBtn').innerText = "Step 3: ナレーションを送信してAI採点を見る ➔";
-    document.getElementById('resultArea').classList.add('hidden');
-  }
-
-  // ==========================================
-  // [Step 3] ナレーションに対するAI採点・アドバイス表示
-  // ==========================================
-  async function handleSpeakingStep3NarrationEvaluation(userInput, apiKey) {
+  async function handleSpeakingWorkflow(userInput, apiKey) {
     const resultArea = document.getElementById('resultArea');
     const loadingText = document.getElementById('loadingText');
     const resultContent = document.getElementById('resultContent');
@@ -1456,295 +764,56 @@ ${historySummary}`;
     loadingText.classList.remove('hidden');
     resultContent.innerText = '';
 
-    const prompt = `【4コマナレーション課題】\nタイトル: ${speakingData.title}\n\n【ユーザーのナレーション入力テキスト】\n${userInput}\n\n【指示】\nこのナレーションを英検準1級二次試験の基準（ナレーション構成、文法、語彙力）で評価・アドバイス・模範解答を出力してください。`;
+    let prompt = '';
+    let targetStepName = '';
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${encodeURIComponent(apiKey)}&alt=sse`;
+    if (speakingStep === 1) {
+      targetStepName = 'Narration';
+      prompt = `【4コマナレーション課題】\nタイトル: ${speakingData.title}\n\n【ユーザーのナレーション】\n${userInput}\n\n【指示】ナレーションを評価・添削してください。`;
+      speakingStep = 2; // 次はQ1へ
+    } else if (speakingStep === 2) {
+      targetStepName = 'Question No.1';
+      prompt = `【二次試験 Q1】\n質問: ${speakingData.questions[0]}\n\n【ユーザーの回答】\n${userInput}\n\n【指示】評価・添削してください。`;
+      speakingStep = 3; // 次はQ2へ
+    } else if (speakingStep === 3) {
+      targetStepName = 'Question No.2';
+      prompt = `【二次試験 Q2】\n質問: ${speakingData.questions[1]}\n\n【ユーザーの回答】\n${userInput}\n\n【指示】評価・添削してください。`;
+      speakingStep = 4; // 次はQ3&Q4へ
+    } else {
+      targetStepName = 'Question No.3 & No.4';
+      prompt = `【二次試験 Q3 & Q4】\nQ3: ${speakingData.questions[2]}\nQ4: ${speakingData.questions[3]}\n\n【ユーザーの回答】\n${userInput}\n\n【指示】総合評価してください。`;
+      speakingStep = 5;
+    }
 
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemInstructions }] },
-          contents: [{ parts: [{ text: prompt }] }]
-        })
-      });
-
-      if (!response.ok) throw new Error('API Error');
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let buffer = '';
-      let fullText = '';
+      const fullText = await callGeminiStreamHelper(prompt, apiKey, resultContent);
       loadingText.classList.add('hidden');
+      saveToFirestore('speaking_full', targetStepName, userInput, fullText);
 
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        let lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-        for (const line of lines) {
-          if (line.trim().startsWith('data:')) {
-            let jsonStr = line.trim().replace(/^data:\s*/, '');
-            if (jsonStr === '[DONE]') continue;
-            try {
-              let data = JSON.parse(jsonStr);
-              let chunk = data.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (chunk) {
-                fullText += chunk;
-                resultContent.innerText = fullText;
-              }
-            } catch(e) {}
-          }
-        }
+      if (speakingStep === 2) {
+        document.getElementById('modeTitle').innerText = "⑦ 4コマナレーション ＆ Q&Aシミュレータ [ Step 4: Question No.1 ]";
+        document.getElementById('topicText').innerHTML = `<div class="qa-step-box"><strong>${speakingData.questions[0]}</strong></div>`;
+        document.getElementById('userInput').value = '';
+        document.getElementById('submitTestBtn').innerText = "Q1回答を送信し、Q2へ進む ➔";
+      } else if (speakingStep === 3) {
+        document.getElementById('modeTitle').innerText = "⑦ 4コマナレーション ＆ Q&Aシミュレータ [ Step 5: Question No.2 ]";
+        document.getElementById('topicText').innerHTML = `<div class="qa-step-box"><strong>${speakingData.questions[1]}</strong></div>`;
+        document.getElementById('userInput').value = '';
+        document.getElementById('submitTestBtn').innerText = "Q2回答を送信し、Q3&Q4へ進む ➔";
+      } else if (speakingStep === 4) {
+        document.getElementById('modeTitle').innerText = "⑦ 4コマナレーション ＆ Q&Aシミュレータ [ Step 6: Question No.3 & No.4 ]";
+        document.getElementById('topicText').innerHTML = `<div class="qa-step-box"><strong>${speakingData.questions[2]}<br>${speakingData.questions[3]}</strong></div>`;
+        document.getElementById('userInput').value = '';
+        document.getElementById('submitTestBtn').innerText = "最終回答を送信して総合評価を見る ➔";
+      } else {
+        document.getElementById('submitTestBtn').style.display = 'none';
+        document.getElementById('topicText').innerHTML = `<h3>🎉 二次試験シミュレーション完全終了お疲れ様でした！</h3>`;
       }
-
-      saveToFirestore('speaking_full', 'Narration: ' + speakingData.title, userInput, fullText);
-
-      // Step 3完了後、ボタン表示を切り替えてStep 4へ誘導
-      document.getElementById('submitTestBtn').innerText = "Step 4 (Q1へ進む) ➔";
-
     } catch (e) {
       loadingText.classList.add('hidden');
       resultContent.innerText = 'エラー: ' + e.message;
     }
-  }
-
-  // ==========================================
-  // [Step 4] Question No.1 (4コマ目の登場人物の気持ち・状況) 出題
-  // ==========================================
-  function renderSpeakingStep4Q1() {
-    speakingStep = 4;
-    const topicTextEl = document.getElementById('topicText');
-    const resultArea = document.getElementById('resultArea');
-    resultArea.classList.add('hidden');
-
-    let qText = speakingData.questions[0]; // No.1
-    document.getElementById('modeTitle').innerText = "⑦ 4コマナレーション ＆ Q&Aシミュレータ [ Step 4: Question No.1 ]";
-
-    topicTextEl.innerHTML = `
-      <div class="qa-step-box">
-        <h4 style="margin:0 0 8px 0; color:#16a34a;">🗣️ [Step 4] Question No.1 (4コマ目の状況・登場人物の気持ち)</h4>
-        <p style="font-size:1.05rem; font-weight:bold;">${qText.replace(/[#*]/g, '')}</p>
-        <button class="btn btn-audio" style="width:auto; margin-top:5px;" onclick="playAudioSpecific('${qText.replace(/'/g, "\\'")}')">🔊 質問音声を聴く</button>
-      </div>
-    `;
-
-    document.getElementById('userInput').value = '';
-    document.getElementById('userInput').placeholder = "Question No.1に対する英語回答を入力または音声入力してください...";
-    document.getElementById('submitTestBtn').innerText = "回答を送信し、Step 5 (Q2) へ進む ➔";
-
-    currentPromptText = qText;
-    playAudio();
-  }
-
-  // ==========================================
-  // [Step 5] Question No.2 (意見問答) 出題・回答・評価
-  // ==========================================
-  function renderSpeakingStep5Q2() {
-    speakingStep = 5;
-    const topicTextEl = document.getElementById('topicText');
-    const resultArea = document.getElementById('resultArea');
-    resultArea.classList.add('hidden');
-
-    let qText = speakingData.questions[1]; // No.2
-    document.getElementById('modeTitle').innerText = "⑦ 4コマナレーション ＆ Q&Aシミュレータ [ Step 5: Question No.2 ]";
-
-    topicTextEl.innerHTML = `
-      <div class="qa-step-box">
-        <h4 style="margin:0 0 8px 0; color:#16a34a;">🗣️ [Step 5] Question No.2 (意見問答)</h4>
-        <p style="font-size:1.05rem; font-weight:bold;">${qText.replace(/[#*]/g, '')}</p>
-        <button class="btn btn-audio" style="width:auto; margin-top:5px;" onclick="playAudioSpecific('${qText.replace(/'/g, "\\'")}')">🔊 質問音声を聴く</button>
-      </div>
-    `;
-
-    document.getElementById('userInput').value = '';
-    document.getElementById('userInput').placeholder = "Question No.2に対する英語意見を入力または音声入力してください...";
-    document.getElementById('submitTestBtn').innerText = "回答を送信し、Step 6 (Q3 & Q4) へ進む ➔";
-
-    currentPromptText = qText;
-    playAudio();
-  }
-
-  // Q&A個別評価の共通処理 (Step 4 および Step 5で使用)
-  async function handleSpeakingStepQnAEvaluation(qIndex, userInput, apiKey) {
-    const resultArea = document.getElementById('resultArea');
-    const loadingText = document.getElementById('loadingText');
-    const resultContent = document.getElementById('resultContent');
-
-    resultArea.classList.remove('hidden');
-    loadingText.classList.remove('hidden');
-    resultContent.innerText = '';
-
-    let qText = speakingData.questions[qIndex - 1];
-    const prompt = `【二次試験 Q&A Question No.${qIndex}】\n質問: ${qText}\n\n【ユーザーの回答】\n${userInput}\n\n【指示】\nこの回答に対する英検準1級基準での採点・評価・アドバイスおよび自然な模範解答を出力してください。`;
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${encodeURIComponent(apiKey)}&alt=sse`;
-
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemInstructions }] },
-          contents: [{ parts: [{ text: prompt }] }]
-        })
-      });
-
-      if (!response.ok) throw new Error('API Error');
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let buffer = '';
-      let fullText = '';
-      loadingText.classList.add('hidden');
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        let lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-        for (const line of lines) {
-          if (line.trim().startsWith('data:')) {
-            let jsonStr = line.trim().replace(/^data:\s*/, '');
-            if (jsonStr === '[DONE]') continue;
-            try {
-              let data = JSON.parse(jsonStr);
-              let chunk = data.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (chunk) {
-                fullText += chunk;
-                resultContent.innerText = fullText;
-              }
-            } catch(e) {}
-          }
-        }
-      }
-
-      saveToFirestore('speaking_full', `Q${qIndex}: ${qText}`, userInput, fullText);
-
-      if (qIndex === 1) {
-        // Step 4 完了 ➔ 次は Step 5へ移行準備
-        document.getElementById('submitTestBtn').innerText = "Step 5 (Q2へ進む) ➔";
-        speakingStep = 5; // 次回クリックでrenderSpeakingStep5Q2に分岐させるため、あるいはここで直接renderさせるか
-        // ユーザーが確認できるよう、ボタンクリックで次へ進めるようステータスを保持
-      } else if (qIndex === 2) {
-        // Step 5 完了 ➔ 次は Step 6へ移行準備
-        document.getElementById('submitTestBtn').innerText = "Step 6 (Q3 & Q4 総合評価へ進む) ➔";
-        speakingStep = 6;
-      }
-
-    } catch (e) {
-      loadingText.classList.add('hidden');
-      resultContent.innerText = 'エラー: ' + e.message;
-    }
-  }
-
-  // ==========================================
-  // [Step 6] Question No.3 & No.4 (意見問答) 順次出題・総合評価
-  // ==========================================
-  function renderSpeakingStep6Q3andQ4() {
-    speakingStep = 6;
-    const topicTextEl = document.getElementById('topicText');
-    const resultArea = document.getElementById('resultArea');
-    resultArea.classList.add('hidden');
-
-    let q3 = speakingData.questions[2];
-    let q4 = speakingData.questions[3];
-    document.getElementById('modeTitle').innerText = "⑦ 4コマナレーション ＆ Q&Aシミュレータ [ Step 6: Question No.3 & No.4 ]";
-
-    topicTextEl.innerHTML = `
-      <div class="qa-step-box">
-        <h4 style="margin:0 0 8px 0; color:#16a34a;">🗣️ [Step 6] Question No.3 & No.4 (意見問答・最終仕上げ)</h4>
-        <p style="font-size:0.95rem; font-weight:bold; margin-bottom:4px;">${q3.replace(/[#*]/g, '')}</p>
-        <p style="font-size:0.95rem; font-weight:bold; margin-bottom:8px;">${q4.replace(/[#*]/g, '')}</p>
-        <button class="btn btn-audio" style="width:auto; margin-top:5px;" onclick="playAudioSpecific('${(q3 + ' ' + q4).replace(/'/g, "\\'")}')">🔊 質問音声をまとめて聴く</button>
-      </div>
-    `;
-
-    document.getElementById('userInput').value = '';
-    document.getElementById('userInput').placeholder = "Q3およびQ4に対するあなたの意見や回答をまとめて入力または音声入力してください...";
-    document.getElementById('submitTestBtn').innerText = "最終回答を送信して総合評価を見る ➔";
-
-    currentPromptText = q3 + ' ' + q4;
-    playAudio();
-  }
-
-  async function handleSpeakingStep6FinalEvaluation(userInput, apiKey) {
-    const resultArea = document.getElementById('resultArea');
-    const loadingText = document.getElementById('loadingText');
-    const resultContent = document.getElementById('resultContent');
-
-    resultArea.classList.remove('hidden');
-    loadingText.classList.remove('hidden');
-    resultContent.innerText = '';
-
-    let q3 = speakingData.questions[2];
-    let q4 = speakingData.questions[3];
-    const prompt = `【二次試験 Q&A Question No.3 & No.4 最終問題】\n質問3: ${q3}\n質問4: ${q4}\n\n【ユーザーの総合回答】\n${userInput}\n\n【指示】\nこれら最終質問に対する英検準1級基準での総合採点・評価・アドバイスおよび模範解答を出力してください。`;
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${encodeURIComponent(apiKey)}&alt=sse`;
-
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemInstructions }] },
-          contents: [{ parts: [{ text: prompt }] }]
-        })
-      });
-
-      if (!response.ok) throw new Error('API Error');
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let buffer = '';
-      let fullText = '';
-      loadingText.classList.add('hidden');
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        let lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-        for (const line of lines) {
-          if (line.trim().startsWith('data:')) {
-            let jsonStr = line.trim().replace(/^data:\s*/, '');
-            if (jsonStr === '[DONE]') continue;
-            try {
-              let data = JSON.parse(jsonStr);
-              let chunk = data.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (chunk) {
-                fullText += chunk;
-                resultContent.innerText = fullText;
-              }
-            } catch(e) {}
-          }
-        }
-      }
-
-      saveToFirestore('speaking_full', `Q3 & Q4: ${q3} / ${q4}`, userInput, fullText);
-
-      document.getElementById('topicText').innerHTML = `
-        <div style="background:#e0f2fe; border-left:5px solid #0288D1; padding:15px; border-radius:6px;">
-          <h3 style="margin:0 0 5px 0; color:#0369a1;">🎉 二次試験シミュレーション（全6ステップ）完全終了</h3>
-          <p style="margin:0;">すべてのナレーションおよびQ&Aプロセスが完了しました。お疲れ様でした！</p>
-        </div>
-      `;
-      document.getElementById('submitTestBtn').style.display = 'none';
-      document.getElementById('speechInputContainer').classList.add('hidden');
-
-    } catch (e) {
-      loadingText.classList.add('hidden');
-      resultContent.innerText = 'エラー: ' + e.message;
-    }
-  }
-
-  function playAudioSpecific(text) {
-    currentPromptText = text;
-    playAudio();
   }
 </script>
-
 </body>
 </html>
