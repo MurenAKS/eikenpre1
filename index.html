@@ -142,8 +142,9 @@
     <div id="radioChoicesArea" class="hidden"></div>
 
     <div id="speechInputContainer" class="hidden" style="margin-top: 15px; margin-bottom: 5px;">
+      <div id="timerDisplay" class="timer-badge hidden" style="margin-bottom: 8px;">残り時間: 01:00</div>
       <button id="micBtn" class="btn btn-mic" onclick="toggleSpeechRecognition()">🎤 英語で話す (音声入力)</button>
-      <div id="micStatus" class="loading hidden" style="margin-top: 5px; font-size: 0.9rem;">🎙️ 聞き取り中...（英語で話してください。終了時は「停止」ボタンを押してください）</div>
+      <div id="micStatus" class="loading hidden" style="margin-top: 5px; font-size: 0.9rem;">🎙️ 聞き取り中...（英語で話してください）</div>
     </div>
 
     <textarea id="userInput" placeholder="ここにあなたの解答または英文を入力してください..."></textarea>
@@ -363,59 +364,137 @@
   let currentPromptText = '';
   let recognition = null;
   let isRecognizing = false;
+  let speechTimer = null;
+  let remainingSeconds = 60;
+  let manualStopRequested = false;
 
   function toggleSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return alert('お使いのブラウザは音声認識に対応していません。');
 
-    const micBtn = document.getElementById('micBtn');
-    const micStatus = document.getElementById('micStatus');
-    const userInput = document.getElementById('userInput');
-
     if (isRecognizing) {
-      if (recognition) recognition.stop();
+      manualStopRequested = true;
+      stopSpeechRecognition();
       return;
+    }
+
+    manualStopRequested = false;
+    startSpeechRecognitionSession(SpeechRecognition);
+  }
+
+  function startSpeechRecognitionSession(SpeechRecognition) {
+    if (recognition) {
+      try { recognition.abort(); } catch(e){}
     }
 
     recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
     recognition.continuous = true;
     recognition.interimResults = true;
-    let baseTranscript = userInput.value ? userInput.value.trim() + ' ' : '';
+
+    const micBtn = document.getElementById('micBtn');
+    const micStatus = document.getElementById('micStatus');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const userInput = document.getElementById('userInput');
+
+    let finalizedTextBase = userInput.value ? userInput.value.trim() + ' ' : '';
 
     recognition.onstart = () => {
       isRecognizing = true;
       micBtn.classList.add('recording');
-      micBtn.innerText = '⏹️ 停止 (音声入力中...)';
+      micBtn.innerText = '⏹️ 停止 (音声入力中)';
       micStatus.classList.remove('hidden');
-      baseTranscript = userInput.value ? userInput.value.trim() + ' ' : '';
+      timerDisplay.classList.remove('hidden');
+
+      if (!speechTimer) {
+        remainingSeconds = 60;
+        updateTimerDisplay();
+        speechTimer = setInterval(() => {
+          remainingSeconds--;
+          updateTimerDisplay();
+          if (remainingSeconds <= 0) {
+            manualStopRequested = true;
+            stopSpeechRecognition();
+          }
+        }, 1000);
+      }
     };
 
     recognition.onresult = (event) => {
-      let interim = '';
-      let final = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) final += event.results[i][0].transcript;
-        else interim += event.results[i][0].transcript;
+      let currentSessionFinal = '';
+      let currentSessionInterim = '';
+
+      for (let i = 0; i < event.results.length; ++i) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          currentSessionFinal += transcript + ' ';
+        } else {
+          currentSessionInterim += transcript;
+        }
       }
-      if (final) baseTranscript += final.trim() + ' ';
-      userInput.value = (baseTranscript + interim).trim();
+
+      // 重複蓄積を防ぐため、確定分(final)をベースに結合しつつ今回のセッション分を反映
+      userInput.value = (finalizedTextBase + currentSessionFinal + currentSessionInterim).trim();
     };
 
-    recognition.onerror = () => stopRecognitionUI();
-    recognition.onend = () => stopRecognitionUI();
-    recognition.start();
+    recognition.onerror = () => {
+      if (!manualStopRequested && isRecognizing) {
+        setTimeout(() => {
+          if (isRecognizing && !manualStopRequested) {
+            try { recognition.start(); } catch(e){}
+          }
+        }, 300);
+      }
+    };
+
+    recognition.onend = () => {
+      if (!manualStopRequested && isRecognizing) {
+        try {
+          recognition.start();
+        } catch (e) {
+          stopSpeechRecognition();
+        }
+      } else {
+        stopSpeechRecognition();
+      }
+    };
+
+    try {
+      recognition.start();
+    } catch(e) {
+      stopSpeechRecognition();
+    }
   }
 
-  function stopRecognitionUI() {
+  function stopSpeechRecognition() {
     isRecognizing = false;
+    if (speechTimer) {
+      clearInterval(speechTimer);
+      speechTimer = null;
+    }
+    if (recognition) {
+      try { recognition.stop(); } catch(e){}
+      recognition = null;
+    }
+
     const micBtn = document.getElementById('micBtn');
+    const micStatus = document.getElementById('micStatus');
+    const timerDisplay = document.getElementById('timerDisplay');
+
     if (micBtn) {
       micBtn.classList.remove('recording');
       micBtn.innerText = '🎤 英語で話す (音声入力)';
     }
-    const micStatus = document.getElementById('micStatus');
     if (micStatus) micStatus.classList.add('hidden');
+    if (timerDisplay) timerDisplay.classList.add('hidden');
+  }
+
+  function updateTimerDisplay() {
+    const timerDisplay = document.getElementById('timerDisplay');
+    if (!timerDisplay) return;
+    const mins = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+    const secs = String(remainingSeconds % 60).padStart(2, '0');
+    timerDisplay.innerText = `残り時間: ${mins}:${secs}`;
   }
 
   const systemInstructions = `あなたは英検準1級（CEFR B2）の採点・指導エキスパートです。丁寧な日本語で評価・アドバイス・模範解答を出力してください。`;
@@ -538,7 +617,6 @@
     document.getElementById('resultContent').innerText = '';
 
     resetTestUIForMode(mode);
-
     document.getElementById('modeTitle').innerText = modeDefinitions[mode];
 
     if (mode === 'speaking_full') {
@@ -548,7 +626,6 @@
     }
   }
 
-  // ⑦ 4コマシミュレータ ステート管理
   let speakingStep = 1;
   let speakingData = {};
 
@@ -557,7 +634,7 @@
     document.getElementById('topicLoading').classList.add('hidden');
     document.getElementById('audioBtn').classList.remove('hidden');
     document.getElementById('audioStatus').classList.remove('hidden');
-    document.getElementById('speechInputContainer').classList.remove('hidden'); // Requirement 3
+    document.getElementById('speechInputContainer').classList.remove('hidden');
 
     speakingData = {
       title: "An Office Environmental Initiative (GreenOffice)",
@@ -608,7 +685,7 @@
 
     document.getElementById('userInput').value = '';
     document.getElementById('userInput').placeholder = "ここにあなたのナレーション英文を入力、または音声入力してください...";
-    document.getElementById('submitTestBtn').innerText = "Step 2: ナレーションを送信してAI判定を見る ➔";
+    document.getElementById('submitTestBtn').innerText = "送信して判定・解説を表示";
 
     playAudio(() => document.getElementById('audioStatus').classList.add('hidden'));
   }
@@ -673,7 +750,7 @@
     if (!apiKey) return alert('Gemini API Key を入力してください。');
     
     stopSpeech();
-    if (isRecognizing && recognition) recognition.stop();
+    stopSpeechRecognition();
 
     if (currentMode === 'speaking_full') {
       setupSpeakingFullFlow();
@@ -725,7 +802,9 @@
   async function submitToGeminiStream() {
     const apiKey = document.getElementById('apiKey').value;
     if (!apiKey) return alert('Gemini API Key を入力してください。');
-    if (isRecognizing && recognition) recognition.stop();
+    
+    stopSpeech();
+    stopSpeechRecognition();
 
     const userInput = document.getElementById('userInput').value.trim();
     if (!userInput) return alert('回答を入力または音声入力してください。');
@@ -761,7 +840,7 @@
     const resultContent = document.getElementById('resultContent');
 
     resultArea.classList.remove('hidden');
-    loadingText.classList.remove('hidden');
+    loadingText.classList.add('hidden');
     resultContent.innerText = '';
 
     let prompt = '';
@@ -770,15 +849,15 @@
     if (speakingStep === 1) {
       targetStepName = 'Narration';
       prompt = `【4コマナレーション課題】\nタイトル: ${speakingData.title}\n\n【ユーザーのナレーション】\n${userInput}\n\n【指示】ナレーションを評価・添削してください。`;
-      speakingStep = 2; // 次はQ1へ
+      speakingStep = 2;
     } else if (speakingStep === 2) {
       targetStepName = 'Question No.1';
       prompt = `【二次試験 Q1】\n質問: ${speakingData.questions[0]}\n\n【ユーザーの回答】\n${userInput}\n\n【指示】評価・添削してください。`;
-      speakingStep = 3; // 次はQ2へ
+      speakingStep = 3;
     } else if (speakingStep === 3) {
       targetStepName = 'Question No.2';
       prompt = `【二次試験 Q2】\n質問: ${speakingData.questions[1]}\n\n【ユーザーの回答】\n${userInput}\n\n【指示】評価・添削してください。`;
-      speakingStep = 4; // 次はQ3&Q4へ
+      speakingStep = 4;
     } else {
       targetStepName = 'Question No.3 & No.4';
       prompt = `【二次試験 Q3 & Q4】\nQ3: ${speakingData.questions[2]}\nQ4: ${speakingData.questions[3]}\n\n【ユーザーの回答】\n${userInput}\n\n【指示】総合評価してください。`;
@@ -787,30 +866,25 @@
 
     try {
       const fullText = await callGeminiStreamHelper(prompt, apiKey, resultContent);
-      loadingText.classList.add('hidden');
       saveToFirestore('speaking_full', targetStepName, userInput, fullText);
 
       if (speakingStep === 2) {
         document.getElementById('modeTitle').innerText = "⑦ 4コマナレーション ＆ Q&Aシミュレータ [ Step 4: Question No.1 ]";
         document.getElementById('topicText').innerHTML = `<div class="qa-step-box"><strong>${speakingData.questions[0]}</strong></div>`;
         document.getElementById('userInput').value = '';
-        document.getElementById('submitTestBtn').innerText = "Q1回答を送信し、Q2へ進む ➔";
       } else if (speakingStep === 3) {
         document.getElementById('modeTitle').innerText = "⑦ 4コマナレーション ＆ Q&Aシミュレータ [ Step 5: Question No.2 ]";
         document.getElementById('topicText').innerHTML = `<div class="qa-step-box"><strong>${speakingData.questions[1]}</strong></div>`;
         document.getElementById('userInput').value = '';
-        document.getElementById('submitTestBtn').innerText = "Q2回答を送信し、Q3&Q4へ進む ➔";
       } else if (speakingStep === 4) {
         document.getElementById('modeTitle').innerText = "⑦ 4コマナレーション ＆ Q&Aシミュレータ [ Step 6: Question No.3 & No.4 ]";
         document.getElementById('topicText').innerHTML = `<div class="qa-step-box"><strong>${speakingData.questions[2]}<br>${speakingData.questions[3]}</strong></div>`;
         document.getElementById('userInput').value = '';
-        document.getElementById('submitTestBtn').innerText = "最終回答を送信して総合評価を見る ➔";
       } else {
         document.getElementById('submitTestBtn').style.display = 'none';
         document.getElementById('topicText').innerHTML = `<h3>🎉 二次試験シミュレーション完全終了お疲れ様でした！</h3>`;
       }
     } catch (e) {
-      loadingText.classList.add('hidden');
       resultContent.innerText = 'エラー: ' + e.message;
     }
   }
