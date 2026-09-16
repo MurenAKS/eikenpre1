@@ -184,7 +184,7 @@
       color: #334155;
     }
 
-    /* 4コマ漫画カード風レイアウトスタイル (要件4対応) */
+    /* 4コマ漫画カード風レイアウトスタイル */
     .comic-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -327,17 +327,20 @@
       <strong>【今回のお題 / 問題文】</strong><br>
       <span id="topicLoading" class="loading hidden">新しい問題をAIが生成中...</span>
       <button id="audioBtn" class="btn btn-audio hidden" onclick="playAudio()" style="margin-top:10px;">🔊 音声を聴く</button>
-      <!-- 音声認識（STT）用ボタン（要件2対応） -->
-      <button id="micBtn" class="btn btn-mic hidden" onclick="toggleSpeechRecognition()" style="margin-top:10px;">🎤 英語で話して答える (音声入力)</button>
       <div id="audioStatus" class="loading hidden" style="margin-top:5px;">🎵 音声を再生中...（終了後に問題が表示されます）</div>
-      <div id="micStatus" class="loading hidden" style="margin-top:5px;">🎙️ 聞き取り中...（英語で話してください）</div>
       <div id="topicText" style="margin-top:10px;">問題を取得中...</div>
     </div>
 
-    <!-- ⑦4コマ漫画カード描画専用のHTMLコンテナ (要件4対応) -->
+    <!-- ⑦4コマ漫画カード描画専用のHTMLコンテナ -->
     <div id="comicContainer" class="hidden"></div>
 
     <div id="radioChoicesArea" class="hidden"></div>
+
+    <!-- 解答エリアのすぐ近くに配置する音声入力用コントロールパネル -->
+    <div id="speechInputContainer" class="hidden" style="margin-top: 15px; margin-bottom: 5px;">
+      <button id="micBtn" class="btn btn-mic" onclick="toggleSpeechRecognition()">🎤 英語で話す (音声入力)</button>
+      <div id="micStatus" class="loading hidden" style="margin-top: 5px; font-size: 0.9rem;">🎙️ 聞き取り中...（英語で話してください）</div>
+    </div>
 
     <textarea id="userInput" placeholder="ここにあなたの解答または英文を入力してください..."></textarea>
     <button id="submitTestBtn" class="btn" onclick="submitToGeminiStream()" style="margin-top:15px; font-size:1.1rem; padding:12px;">送信して判定・解説を表示</button>
@@ -559,8 +562,7 @@
 
     const audioBtn = document.getElementById('audioBtn');
     const audioStatus = document.getElementById('audioStatus');
-    const micBtn = document.getElementById('micBtn');
-    const micStatus = document.getElementById('micStatus');
+    const speechInputContainer = document.getElementById('speechInputContainer');
     const topicTextEl = document.getElementById('topicText');
     const loadingEl = document.getElementById('topicLoading');
     const radioArea = document.getElementById('radioChoicesArea');
@@ -569,8 +571,7 @@
     loadingEl.classList.add('hidden');
     audioBtn.classList.add('hidden');
     audioStatus.classList.add('hidden');
-    micBtn.classList.add('hidden');
-    micStatus.classList.add('hidden');
+    speechInputContainer.classList.add('hidden');
     radioArea.innerHTML = '';
     radioArea.classList.add('hidden');
     comicContainer.classList.add('hidden');
@@ -578,7 +579,7 @@
     document.getElementById('submitTestBtn').style.display = 'block';
 
     if (['shadowing', 'speaking_full'].includes(currentMode)) {
-      micBtn.classList.remove('hidden');
+      speechInputContainer.classList.remove('hidden');
     }
 
     if (currentMode === 'speaking_full') {
@@ -688,11 +689,9 @@ ${historySummary}`;
   let currentMode = '';
   let currentPromptText = '';
 
-  // 音声認識（Web Speech API）のインスタンス管理用変数
   let recognition = null;
   let isRecognizing = false;
 
-  // 要件2: 音声認識機能（webkitSpeechRecognition）のセットアップとUI連動制御
   function toggleSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -712,14 +711,14 @@ ${historySummary}`;
     }
 
     recognition = new SpeechRecognition();
-    recognition.lang = 'en-US'; // 要件2: 米国英語に設定
+    recognition.lang = 'en-US';
     recognition.interimResults = true;
     recognition.continuous = true;
 
     recognition.onstart = () => {
       isRecognizing = true;
       micBtn.classList.add('recording');
-      micBtn.innerText = '⏹️ 音声入力を停止する';
+      micBtn.innerText = '⏹️ 停止 (音声入力中...)';
       micStatus.classList.remove('hidden');
     };
 
@@ -748,23 +747,21 @@ ${historySummary}`;
     recognition.onend = () => {
       isRecognizing = false;
       micBtn.classList.remove('recording');
-      micBtn.innerText = '🎤 英語で話して答える (音声入力)';
+      micBtn.innerText = '🎤 英語で話す (音声入力)';
       micStatus.classList.add('hidden');
     };
 
-    // 要件2: ユーザーの「ボタンタップ（クリック）イベント」直下での recognition.start() 実行
     try {
       recognition.start();
     } catch (e) {
       showLog("音声認識起動エラー: " + e.message);
       isRecognizing = false;
       micBtn.classList.remove('recording');
-      micBtn.innerText = '🎤 英語で話して答える (音声入力)';
+      micBtn.innerText = '🎤 英語で話す (音声入力)';
       micStatus.classList.add('hidden');
     }
   }
 
-  // 要件2: システムプロンプトに音声認識（STT）補足指示を1行追加
   const systemInstructions = `あなたは英検準1級（CEFR B2）の採点・指導エキスパートです。
 ユーザーの入力に対して、評価・アドバイス・解説・模範解答を丁寧な日本語で分かりやすく出力してください。
 リスニングやスピーキング用の英文を生成する際は、音声読み上げエンジンが自然なアクセントと間（ポーズ）で発声できるよう、適切なカンマ(,)やピリオド(.)、感嘆符(!)、疑問符(?)を意識して自然な口語英文を作成してください。
@@ -803,7 +800,6 @@ ${historySummary}`;
 
     let textToProcess = currentPromptText || '';
 
-    // 要件1: 読み上げ時の「#」および「*」などの記号の完全除去処理（最優先）
     textToProcess = textToProcess
       .replace(/[#*]/g, '')
       .replace(/[_~]/g, '');
@@ -870,7 +866,6 @@ ${historySummary}`;
       }
 
       let item = queue[currentIndex++];
-      // 読み上げ直前のテキストでも念のため#等をサニタイズ
       const sanitizedUtteranceText = item.text.replace(/[#*]/g, '');
       let uttr = new SpeechSynthesisUtterance(sanitizedUtteranceText);
       uttr.lang = 'en-US';
@@ -960,6 +955,13 @@ ${historySummary}`;
     comicContainer.classList.add('hidden');
     document.getElementById('submitTestBtn').style.display = 'block';
 
+    const speechInputContainer = document.getElementById('speechInputContainer');
+    speechInputContainer.classList.add('hidden');
+
+    if (['shadowing', 'speaking_full'].includes(mode)) {
+      speechInputContainer.classList.remove('hidden');
+    }
+
     const titles = {
       'vocab': '① 短文空所補充 (語彙)', 'reading': '② 長文空所補充・内容一致 (読解)',
       'writing_opinion': '③ 意見論述 (Writing)', 'writing_summary': '④ 要約問題 (Writing)',
@@ -975,10 +977,7 @@ ${historySummary}`;
     }
   }
 
-  // ==========================================
-  // 要件3 & 4: ⑦ 4コマナレーション ＆ Q&Aシミュレータ（試験準拠化 ＆ HTML/CSS描画）
-  // ==========================================
-  let speakingStep = 'narration'; // 'narration' or 'qa_1' to 'qa_4'
+  let speakingStep = 'narration';
   let speakingData = {};
 
   function setupSpeakingFullFlow() {
@@ -987,17 +986,14 @@ ${historySummary}`;
     const loadingEl = document.getElementById('topicLoading');
     const audioBtn = document.getElementById('audioBtn');
     const audioStatus = document.getElementById('audioStatus');
-    const micBtn = document.getElementById('micBtn');
-    const micStatus = document.getElementById('micStatus');
+    const speechInputContainer = document.getElementById('speechInputContainer');
     const comicContainer = document.getElementById('comicContainer');
 
     loadingEl.classList.add('hidden');
     audioBtn.classList.remove('hidden');
     audioStatus.classList.remove('hidden');
-    micBtn.classList.remove('hidden'); // 音声認識対応
-    micStatus.classList.add('hidden');
+    speechInputContainer.classList.remove('hidden');
 
-    // 英検準1級二次試験の厳密な4コマ漫画設定データ
     speakingData = {
       title: "An Office Environmental Initiative (#GreenOffice)",
       panels: [
@@ -1025,7 +1021,6 @@ ${historySummary}`;
       <p style="font-size:1.05rem; font-weight:bold; color:var(--primary-color);">タイトル: ${speakingData.title.replace(/[#*]/g, '')}</p>
     `;
 
-    // 要件4: HTML/CSSによる4コマ漫画のカード風レイアウト描画
     let comicHTML = '<div class="comic-grid">';
     speakingData.panels.forEach(p => {
       comicHTML += `
@@ -1044,10 +1039,9 @@ ${historySummary}`;
     comicContainer.classList.remove('hidden');
     topicTextEl.classList.remove('hidden');
 
-    document.getElementById('userInput').placeholder = "ここにあなたのナレーション英文を入力（または下のマイクボタンで音声入力）してください...";
+    document.getElementById('userInput').placeholder = "ここにあなたのナレーション英文を入力（または上の「🎤 英語で話す」ボタンで音声入力）してください...";
     document.getElementById('submitTestBtn').innerText = "ナレーションを完了し、Q&Aへ進む";
 
-    // 準備開始のアナウンス音声を流す
     playAudio(() => {
       audioStatus.classList.add('hidden');
     });
@@ -1084,8 +1078,7 @@ ${historySummary}`;
     const loadingEl = document.getElementById('topicLoading');
     const audioBtn = document.getElementById('audioBtn');
     const audioStatus = document.getElementById('audioStatus');
-    const micBtn = document.getElementById('micBtn');
-    const micStatus = document.getElementById('micStatus');
+    const speechInputContainer = document.getElementById('speechInputContainer');
     const radioArea = document.getElementById('radioChoicesArea');
     const comicContainer = document.getElementById('comicContainer');
 
@@ -1093,13 +1086,16 @@ ${historySummary}`;
     loadingEl.classList.remove('hidden');
     audioBtn.classList.add('hidden');
     audioStatus.classList.add('hidden');
-    micBtn.classList.add('hidden');
-    micStatus.classList.add('hidden');
     radioArea.innerHTML = '';
     radioArea.classList.add('hidden');
     comicContainer.innerHTML = '';
     comicContainer.classList.add('hidden');
     document.getElementById('submitTestBtn').style.display = 'block';
+
+    speechInputContainer.classList.add('hidden');
+    if (currentMode === 'shadowing') {
+      speechInputContainer.classList.remove('hidden');
+    }
 
     const prompts = {
       'vocab': '英検準1級レベルの短文空所補充問題（語彙）を1問作成してください。問題文と4つの選択肢(1-4)のみを出力し、正解・和訳・解説は一切出力しないでください。',
@@ -1115,10 +1111,6 @@ ${historySummary}`;
       currentPromptText = normalizeSpeakerLabels(rawText);
       
       loadingEl.classList.add('hidden');
-
-      if (currentMode === 'shadowing') {
-        micBtn.classList.remove('hidden');
-      }
 
       if (['listening', 'shadowing'].includes(currentMode)) {
         audioBtn.classList.remove('hidden');
@@ -1156,7 +1148,6 @@ ${historySummary}`;
       recognition.stop();
     }
 
-    // ⑦スピーキングモードの段階的Q&Aフロー制御 (要件3対応)
     if (currentMode === 'speaking_full') {
       if (speakingStep === 'narration') {
         await handleSpeakingNarrationSubmit(userInput, apiKey);
@@ -1238,7 +1229,6 @@ ${historySummary}`;
     }
   }
 
-  // ⑦スピーキング専用：ナレーション送信後の評価とQ1展開
   async function handleSpeakingNarrationSubmit(userInput, apiKey) {
     const resultArea = document.getElementById('resultArea');
     const loadingText = document.getElementById('loadingText');
@@ -1293,7 +1283,6 @@ ${historySummary}`;
 
       saveToFirestore('speaking_full', 'Narration: ' + speakingData.title, userInput, fullText);
 
-      // 次にQ1（No.2の質問：4コマ目の登場人物の気持ち）へ移行
       speakingStep = 'qa_1';
       renderSpeakingQnAUI(1);
 
@@ -1303,13 +1292,12 @@ ${historySummary}`;
     }
   }
 
-  // ⑦スピーキング専用：Q&A各質問の画面描画
   function renderSpeakingQnAUI(qNumber) {
     const topicTextEl = document.getElementById('topicText');
     const comicContainer = document.getElementById('comicContainer');
-    comicContainer.classList.add('hidden'); // 質問フェーズでは4コマ漫画を隠す
+    comicContainer.classList.add('hidden');
 
-    let qText = speakingData.questions[qNumber]; // qNumber=1は配列index 1 (No.2の質問)
+    let qText = speakingData.questions[qNumber];
     let stepTitle = `面接 Q&A セッション (質問 ${qNumber}/3)`;
     if (qNumber === 1) stepTitle = "Q1 (No.2: 4コマ目の登場人物の気持ちについて)";
     if (qNumber === 2) stepTitle = "Q2 (No.3: 関連トピックの意見問答)";
@@ -1326,10 +1314,9 @@ ${historySummary}`;
     `;
 
     document.getElementById('userInput').value = '';
-    document.getElementById('userInput').placeholder = "質問に対するあなたの英語回答を入力（またはマイクで音声入力）してください...";
+    document.getElementById('userInput').placeholder = "質問に対するあなたの英語回答を入力（または上の「🎤 英語で話す」ボタンで音声入力）してください...";
     document.getElementById('submitTestBtn').innerText = qNumber < 3 ? "回答を送信し、次の質問へ進む" : "最終回答を送信して完了する";
 
-    // 質問音声を自動再生
     currentPromptText = qText;
     playAudio();
   }
@@ -1339,14 +1326,13 @@ ${historySummary}`;
     playAudio();
   }
 
-  // ⑦スピーキング専用：Q&A回答送信処理
   async function handleSpeakingQnASubmit(qNum, userInput, apiKey) {
     const resultArea = document.getElementById('resultArea');
     const loadingText = document.getElementById('loadingText');
     const resultContent = document.getElementById('resultContent');
 
     resultArea.classList.remove('hidden');
-    loadingText.classList.remove('hidden');
+    loadingText.classList.add('hidden');
     resultContent.innerText = '';
 
     let qText = speakingData.questions[qNum];
@@ -1396,13 +1382,11 @@ ${historySummary}`;
       saveToFirestore('speaking_full', `Q${qNum}: ${qText}`, userInput, fullText);
 
       if (qNum < 3) {
-        // 次の質問へ進む
         speakingStep = `qa_${qNum + 1}`;
         setTimeout(() => {
           renderSpeakingQnAUI(qNum + 1);
         }, 1000);
       } else {
-        // 全試験終了
         document.getElementById('topicText').innerHTML = `
           <div style="background:#e0f2fe; border-left:5px solid #0288D1; padding:15px; border-radius:6px;">
             <h3 style="margin:0 0 5px 0; color:#0369a1;">🎉 二次試験シミュレーション完全終了</h3>
@@ -1410,6 +1394,7 @@ ${historySummary}`;
           </div>
         `;
         document.getElementById('submitTestBtn').style.display = 'none';
+        document.getElementById('speechInputContainer').classList.add('hidden');
       }
 
     } catch (e) {
