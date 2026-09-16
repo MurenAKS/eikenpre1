@@ -336,10 +336,10 @@
 
     <div id="radioChoicesArea" class="hidden"></div>
 
-    <!-- 解答エリアのすぐ近くに配置する音声入力用コントロールパネル -->
+    <!-- 音声入力用コントロールパネル -->
     <div id="speechInputContainer" class="hidden" style="margin-top: 15px; margin-bottom: 5px;">
       <button id="micBtn" class="btn btn-mic" onclick="toggleSpeechRecognition()">🎤 英語で話す (音声入力)</button>
-      <div id="micStatus" class="loading hidden" style="margin-top: 5px; font-size: 0.9rem;">🎙️ 聞き取り中...（英語で話してください）</div>
+      <div id="micStatus" class="loading hidden" style="margin-top: 5px; font-size: 0.9rem;">🎙️ 聞き取り中...（英語で話してください。終了時は「停止」ボタンを押してください）</div>
     </div>
 
     <textarea id="userInput" placeholder="ここにあなたの解答または英文を入力してください..."></textarea>
@@ -373,6 +373,9 @@
 </div>
 
 <script>
+  // ==========================================
+  // 1. Firebase 初期化およびFirestore参照
+  // ==========================================
   const firebaseConfig = {
     apiKey: "AIzaSyCk8fSvzuL1-inbDBEXFgrqXdXAbWMlov8",
     authDomain: "eiken-pre1-app.firebaseapp.com",
@@ -689,6 +692,9 @@ ${historySummary}`;
   let currentMode = '';
   let currentPromptText = '';
 
+  // ==========================================
+  // 1 & 2. 英語の音声認識（STT）発話待ち時間延長・精度向上対応
+  // ==========================================
   let recognition = null;
   let isRecognizing = false;
 
@@ -711,9 +717,9 @@ ${historySummary}`;
     }
 
     recognition = new SpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.interimResults = true;
-    recognition.continuous = true;
+    recognition.lang = 'en-US';              // 要件2: 確実にen-USに設定
+    recognition.continuous = true;           // 要件1: 連続音声認識の有効化（発話途中で切れないようにする）
+    recognition.interimResults = true;       // 要件1: 中間結果の取得
 
     recognition.onstart = () => {
       isRecognizing = true;
@@ -723,8 +729,8 @@ ${historySummary}`;
     };
 
     recognition.onresult = (event) => {
-      let interimTranscript = '';
       let finalTranscript = '';
+      let interimTranscript = '';
 
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         if (event.results[i].isFinal) {
@@ -755,6 +761,7 @@ ${historySummary}`;
       micStatus.classList.add('hidden');
     };
 
+    // iOS Safari対策：ユーザーのボタンタップ（click）イベント直下での起動
     try {
       recognition.start();
     } catch (e) {
@@ -766,10 +773,11 @@ ${historySummary}`;
     }
   }
 
+  // 要件2: STT特有のL/R誤認識や分割を文脈補完する指示をプロンプトに追加
   const systemInstructions = `あなたは英検準1級（CEFR B2）の採点・指導エキスパートです。
 ユーザーの入力に対して、評価・アドバイス・解説・模範解答を丁寧な日本語で分かりやすく出力してください。
 リスニングやスピーキング用の英文を生成する際は、音声読み上げエンジンが自然なアクセントと間（ポーズ）で発声できるよう、適切なカンマ(,)やピリオド(.)、感嘆符(!)、疑問符(?)を意識して自然な口語英文を作成してください。
-※ユーザー入力は音声認識（STT）された英語テキストです。同音異義語や発音のブレによる誤変換と思われる部分は文脈から適切に補完して処理・評価してください。`;
+※ユーザー入力は音声認識（STT）された英語テキストです。STTの特性上、L/Rの誤認識や単語の分割が生じている可能性があります。文脈から本来の英語発話を推測して評価してください。`;
 
   function getBestEnglishVoice(synth) {
     const voices = synth.getVoices();
@@ -793,6 +801,9 @@ ${historySummary}`;
     return scoredVoices[0].score > 0 ? scoredVoices[0].voice : englishVoices[0];
   }
 
+  // ==========================================
+  // 3. 音声読み上げ（TTS）での「No.1」等の番号誤読修正 ＆ 「#」「*」完全除去
+  // ==========================================
   function playAudio(onEndCallback) {
     if (!('speechSynthesis' in window)) {
       alert('お使いのブラウザは音声読み上げに対応していません。');
@@ -804,6 +815,10 @@ ${historySummary}`;
 
     let textToProcess = currentPromptText || '';
 
+    // 要件3-1: 「No. 1」「No.1」などを「Number 1」へ自動変換して誤読を防ぐ
+    textToProcess = textToProcess.replace(/No\.\s*(\d+)/gi, 'Number $1');
+
+    // 要件3-2: 「#」および「*」などのマークダウン記号を完全に消去
     textToProcess = textToProcess
       .replace(/[#*]/g, '')
       .replace(/[_~]/g, '');
@@ -870,7 +885,8 @@ ${historySummary}`;
       }
 
       let item = queue[currentIndex++];
-      const sanitizedUtteranceText = item.text.replace(/[#*]/g, '');
+      // 直前でも念のため置換・消去を適用
+      const sanitizedUtteranceText = item.text.replace(/No\.\s*(\d+)/gi, 'Number $1').replace(/[#*]/g, '');
       let uttr = new SpeechSynthesisUtterance(sanitizedUtteranceText);
       uttr.lang = 'en-US';
       uttr.rate = 0.9;
@@ -1371,7 +1387,7 @@ ${historySummary}`;
     const resultContent = document.getElementById('resultContent');
 
     resultArea.classList.remove('hidden');
-    loadingText.classList.remove('hidden');
+    loadingText.classList.add('hidden');
     resultContent.innerText = '';
 
     let qText = speakingData.questions[qNum];
