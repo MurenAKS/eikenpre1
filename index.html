@@ -742,6 +742,10 @@ ${historySummary}`;
 
     recognition.onerror = (event) => {
       showLog("音声認識エラー: " + event.error);
+      isRecognizing = false;
+      micBtn.classList.remove('recording');
+      micBtn.innerText = '🎤 英語で話す (音声入力)';
+      micStatus.classList.add('hidden');
     };
 
     recognition.onend = () => {
@@ -995,7 +999,7 @@ ${historySummary}`;
     speechInputContainer.classList.remove('hidden');
 
     speakingData = {
-      title: "An Office Environmental Initiative (#GreenOffice)",
+      title: "An Office Environmental Initiative (GreenOffice)",
       panels: [
         { num: 1, desc: "One day, a manager announced a new eco-friendly policy to reduce paper waste in the office.", speech: "We must cut down on paper usage." },
         { num: 2, desc: "The next week, employees started using digital documents instead of printing reports.", speech: "This tablet is much more convenient." },
@@ -1048,26 +1052,50 @@ ${historySummary}`;
   }
 
   async function callGemini(promptText, apiKey) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey.trim()}`;
+    const trimmedKey = apiKey ? apiKey.trim() : '';
+    if (!trimmedKey) {
+      throw new Error("Gemini API Keyが入力されていません。");
+    }
+
+    const safePrompt = promptText && typeof promptText === 'string' && promptText.trim() !== '' 
+      ? promptText.trim() 
+      : "英検準1級の対策問題を1問作成してください。";
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(trimmedKey)}`;
+    
     const response = await fetch(url, {
       method: 'POST', 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         systemInstruction: { parts: [{ text: systemInstructions }] }, 
-        contents: [{ parts: [{ text: promptText }] }] 
+        contents: [{ parts: [{ text: safePrompt }] }] 
       })
     });
+
     if (!response.ok) {
-      const errData = await response.json();
-      throw new Error(errData.error?.message || `API Error (${response.status})`);
+      let errorMsg = `API Error (${response.status})`;
+      try {
+        const errData = await response.json();
+        if (errData.error?.message) {
+          errorMsg = errData.error.message;
+        }
+      } catch (e) {}
+      throw new Error(errorMsg);
     }
+
     const data = await response.json();
+    if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
+      throw new Error("AIからの有効な応答データが得られませんでした。");
+    }
     return data.candidates[0].content.parts[0].text;
   }
 
   async function generateNewQuestion() {
     const apiKey = document.getElementById('apiKey').value;
-    if (!apiKey) return alert('最初に右上へ Gemini API Key を入力してください。');
+    if (!apiKey || !apiKey.trim()) {
+      alert('最初に右上へ Gemini API Key を入力してください。');
+      return;
+    }
     
     window.speechSynthesis.cancel();
     if (isRecognizing && recognition) {
@@ -1106,8 +1134,10 @@ ${historySummary}`;
       'shadowing': 'シャドーイング練習用の英検準1級レベルの自然な英文（50語程度）を1つ提示してください。音声読み上げのリズムが良い文章にし、解説は出力しないでください。'
     };
 
+    const targetPrompt = prompts[currentMode] || '英検準1級の英語長文問題を1問作成してください。';
+
     try {
-      let rawText = await callGemini(prompts[currentMode], apiKey);
+      let rawText = await callGemini(targetPrompt, apiKey);
       currentPromptText = normalizeSpeakerLabels(rawText);
       
       loadingEl.classList.add('hidden');
@@ -1140,9 +1170,15 @@ ${historySummary}`;
 
   async function submitToGeminiStream() {
     const apiKey = document.getElementById('apiKey').value;
-    if (!apiKey) return alert('Gemini API Keyを入力してください。');
+    if (!apiKey || !apiKey.trim()) {
+      alert('Gemini API Keyを入力してください。');
+      return;
+    }
     const userInput = document.getElementById('userInput').value;
-    if (!userInput) return alert('回答を入力してください。');
+    if (!userInput || !userInput.trim()) {
+      alert('回答を入力または音声入力してください。');
+      return;
+    }
 
     if (isRecognizing && recognition) {
       recognition.stop();
@@ -1150,11 +1186,11 @@ ${historySummary}`;
 
     if (currentMode === 'speaking_full') {
       if (speakingStep === 'narration') {
-        await handleSpeakingNarrationSubmit(userInput, apiKey);
+        await handleSpeakingNarrationSubmit(userInput.trim(), apiKey.trim());
         return;
       } else if (speakingStep.startsWith('qa_')) {
         let qNum = parseInt(speakingStep.split('_')[1]);
-        await handleSpeakingQnASubmit(qNum, userInput, apiKey);
+        await handleSpeakingQnASubmit(qNum, userInput.trim(), apiKey.trim());
         return;
       }
     }
@@ -1167,9 +1203,12 @@ ${historySummary}`;
     loadingText.classList.remove('hidden');
     resultContent.innerText = '';
 
-    const evalPrompt = `【問題】\n${currentPromptText}\n\n【ユーザーの解答】\n${userInput}\n\n【指示】\n上記解答を英検準1級の基準で詳細に採点・添削・解説してください。\n1. 正解とユーザー解答の正誤判定・総合スコア\n2. 観点別評価および各選択肢・ポイントの解説\n3. 改善のための模範解答・和訳`;
+    const safePromptText = currentPromptText && currentPromptText.trim() !== '' ? currentPromptText.trim() : "（問題文なし）";
+    const safeUserAnswer = userInput.trim();
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${apiKey.trim()}&alt=sse`;
+    const evalPrompt = `【問題】\n${safePromptText}\n\n【ユーザーの解答】\n${safeUserAnswer}\n\n【指示】\n上記解答を英検準1級の基準で詳細に採点・添削・解説してください。\n1. 正解とユーザー解答の正誤判定・総合スコア\n2. 観点別評価および各選択肢・ポイントの解説\n3. 改善のための模範解答・和訳`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${encodeURIComponent(apiKey.trim())}&alt=sse`;
 
     try {
       const response = await fetch(url, {
@@ -1221,7 +1260,7 @@ ${historySummary}`;
       }
 
       if (typeof saveToFirestore === 'function') {
-        saveToFirestore(currentMode, currentPromptText, userInput, fullText);
+        saveToFirestore(currentMode, safePromptText, safeUserAnswer, fullText);
       }
     } catch (error) {
       loadingText.classList.add('hidden');
@@ -1240,7 +1279,7 @@ ${historySummary}`;
 
     const prompt = `【4コマナレーション課題】\nタイトル: ${speakingData.title}\n\n【ユーザーのナレーション音声入力テキスト】\n${userInput}\n\n【指示】\nこのナレーションを英検準1級二次試験の基準（ナレーション構成、文法、発音・流暢さの推測）で評価・解説し、改善点を挙げてください。`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${apiKey.trim()}&alt=sse`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${encodeURIComponent(apiKey)}&alt=sse`;
 
     try {
       const response = await fetch(url, {
@@ -1332,13 +1371,13 @@ ${historySummary}`;
     const resultContent = document.getElementById('resultContent');
 
     resultArea.classList.remove('hidden');
-    loadingText.classList.add('hidden');
+    loadingText.classList.remove('hidden');
     resultContent.innerText = '';
 
     let qText = speakingData.questions[qNum];
     const prompt = `【二次試験 Q&A 質問${qNum}】\n質問: ${qText}\n\n【ユーザーの回答】\n${userInput}\n\n【指示】\nこの回答に対する英検準1級基準での採点・評価・アドバイスおよび自然な模範解答を出力してください。`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${apiKey.trim()}&alt=sse`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${encodeURIComponent(apiKey)}&alt=sse`;
 
     try {
       const response = await fetch(url, {
