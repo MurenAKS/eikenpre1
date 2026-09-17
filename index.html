@@ -176,8 +176,8 @@
 </div>
 
 <script>
-  // 安定動作モデル
-  const API_MODEL = "gemini-1.5-flash";
+  // 404エラーを解消する推奨モデル
+  const API_MODEL = "gemini-2.5-flash";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCk8fSvzuL1-inbDBEXFgrqXdXAbWMlov8",
@@ -567,7 +567,6 @@
     const radioArea = document.getElementById('radioChoicesArea');
     radioArea.innerHTML = '';
     
-    // モード①（語彙）の時のみ選択肢UIを表示
     if (currentMode === 'vocab') {
       const container = document.createElement('div');
       container.className = 'radio-choices-container';
@@ -692,7 +691,6 @@
     playAudio(() => document.getElementById('audioStatus').classList.add('hidden'));
   }
 
-  // API Key の安全な取得関数
   function getEffectiveApiKey(explicitKey) {
     if (typeof explicitKey === 'string' && explicitKey.trim()) {
       return explicitKey.trim();
@@ -726,7 +724,6 @@
     return data.candidates[0].content.parts[0].text;
   }
 
-  // 引数安全化＆404防止ストリーミングヘルパー
   async function callGeminiStreamHelper(promptText, apiKey, targetElement) {
     const key = getEffectiveApiKey(apiKey);
     if (!key) throw new Error("Gemini API Key が未入力です。");
