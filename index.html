@@ -176,6 +176,11 @@
 </div>
 
 <script>
+  // ==========================================
+  // API モデル設定
+  // ==========================================
+  const API_MODEL = "gemini-2.5-flash";
+
   const firebaseConfig = {
     apiKey: "AIzaSyCk8fSvzuL1-inbDBEXFgrqXdXAbWMlov8",
     authDomain: "eiken-pre1-app.firebaseapp.com",
@@ -334,12 +339,12 @@
         document.getElementById('audioStatus').classList.add('hidden');
         document.getElementById('topicText').innerText = currentPromptText;
         document.getElementById('topicText').classList.remove('hidden');
-        checkAndRenderRadioChoices(currentPromptText);
+        checkAndRenderRadioChoices();
       });
     } else {
       document.getElementById('topicText').innerText = currentPromptText;
       document.getElementById('topicText').classList.remove('hidden');
-      checkAndRenderRadioChoices(currentPromptText);
+      checkAndRenderRadioChoices();
     }
   }
 
@@ -397,7 +402,7 @@
     const timerDisplay = document.getElementById('timerDisplay');
     const userInput = document.getElementById('userInput');
 
-    let finalizedTextBase = userInput.value ? userInput.value.trim() + ' ' : '';
+    let finalizedTranscript = userInput.value ? userInput.value.trim() + ' ' : '';
 
     recognition.onstart = () => {
       isRecognizing = true;
@@ -421,20 +426,16 @@
     };
 
     recognition.onresult = (event) => {
-      let currentSessionFinal = '';
-      let currentSessionInterim = '';
-
-      for (let i = 0; i < event.results.length; ++i) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          currentSessionFinal += transcript + ' ';
+      let currentInterim = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const res = event.results[i];
+        if (res.isFinal) {
+          finalizedTranscript += res[0].transcript.trim() + ' ';
         } else {
-          currentSessionInterim += transcript;
+          currentInterim += res[0].transcript;
         }
       }
-
-      // 重複蓄積を防ぐため、確定分(final)をベースに結合しつつ今回のセッション分を反映
-      userInput.value = (finalizedTextBase + currentSessionFinal + currentSessionInterim).trim();
+      userInput.value = (finalizedTranscript + currentInterim).trim();
     };
 
     recognition.onerror = () => {
@@ -562,11 +563,12 @@
     document.getElementById('userInput').value = `${val}`;
   }
 
-  function checkAndRenderRadioChoices(text) {
+  function checkAndRenderRadioChoices() {
     const radioArea = document.getElementById('radioChoicesArea');
     radioArea.innerHTML = '';
-    const hasChoices = /(?:1[.)]|2[.)]|3[.)]|4[.)]|\(1\)|\(2\)|\(3\)|\(4\))/is.test(text);
-    if (hasChoices || ['vocab', 'listening', 'reading'].includes(currentMode)) {
+    
+    // 【要件】モード①（語彙）の時のみ選択肢UIを表示
+    if (currentMode === 'vocab') {
       const container = document.createElement('div');
       container.className = 'radio-choices-container';
       container.innerHTML = '<div style="width:100%; font-size:0.85rem; color:#64748b;">💡 選択肢を選択すると解答欄に自動入力されます：</div>';
@@ -691,7 +693,7 @@
   }
 
   async function callGemini(promptText, apiKey) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
     const response = await fetch(url, {
       method: 'POST', 
       headers: { 'Content-Type': 'application/json' },
@@ -706,7 +708,7 @@
   }
 
   async function callGeminiStreamHelper(promptText, apiKey, targetElement) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?key=${encodeURIComponent(apiKey.trim())}&alt=sse`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:streamGenerateContent?key=${encodeURIComponent(apiKey.trim())}&alt=sse`;
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -764,13 +766,14 @@
     document.getElementById('audioBtn').classList.add('hidden');
     document.getElementById('audioStatus').classList.add('hidden');
 
+    // 出題時は問題・パッセージ・選択肢のみを出力させ、正解や解説は一切出力させない
     const prompts = {
-      'vocab': '英検準1級レベルの短文空所補充問題（語彙）を1問作成してください。問題文と4つの選択肢(1-4)のみを出力してください。',
-      'reading': '英検準1級レベルの長文読解パッセージ1つと設問を作成してください。',
-      'writing_opinion': '英検準1級ライティング（意見論述）のTOPIC（お題）を1つ生成してください。',
-      'writing_summary': '英検準1級要約問題用の英文（100〜120語程度）を作成してください。',
-      'listening': '英検準1級準拠のリスニング問題です。「Listening Section:」という見出しを置いて会話スクリプト・選択肢を出力してください。話者は「Man:」または「Woman:」としてください。',
-      'shadowing': 'シャドーイング用の英検準1級レベルの英文（50語程度）を1つ作成してください。'
+      'vocab': '英検準1級レベルの短文空所補充問題（語彙）を1問作成してください。必ず問題文と4つの選択肢(1-4)のみを出力し、正解・和訳・解説は絶対に含めないでください。',
+      'reading': '英検準1級レベルの長文読解パッセージ1つと設問を作成してください。必ず本文と設問のみを出力し、正解や解説は絶対に含めないでください。',
+      'writing_opinion': '英検準1級ライティング（意見論述）のTOPIC（お題）を1つ生成してください。模範解答や解説は含めないでください。',
+      'writing_summary': '英検準1級要約問題用の英文（100〜120語程度）を作成してください。要約例や解説は含めないでください。',
+      'listening': '英検準1級準拠のリスニング問題です。「Listening Section:」という見出しを置いて会話スクリプト・選択肢を出力してください。話者は「Man:」または「Woman:」としてください。正解や解説は含めないでください。',
+      'shadowing': 'シャドーイング用の英検準1級レベルの英文（50語程度）を1つ作成してください。和訳や解説は含めないでください。'
     };
 
     try {
@@ -786,12 +789,12 @@
           document.getElementById('audioStatus').classList.add('hidden');
           topicTextEl.innerText = currentPromptText;
           topicTextEl.classList.remove('hidden');
-          checkAndRenderRadioChoices(currentPromptText);
+          checkAndRenderRadioChoices();
         });
       } else {
         topicTextEl.innerText = currentPromptText;
         topicTextEl.classList.remove('hidden');
-        checkAndRenderRadioChoices(currentPromptText);
+        checkAndRenderRadioChoices();
       }
     } catch (error) {
       loadingEl.classList.add('hidden');
@@ -822,7 +825,7 @@
     loadingText.classList.remove('hidden');
     resultContent.innerText = '';
 
-    const evalPrompt = `【問題】\n${currentPromptText}\n\n【ユーザーの解答】\n${userInput}\n\n【指示】\n英検準1級の基準で詳細に採点・添削・解説してください。`;
+    const evalPrompt = `【問題】\n${currentPromptText}\n\n【ユーザーの解答】\n${userInput}\n\n【指示】\n※入力はSTT（音声認識）された英文です。誤変換や単語の揺れは文脈から適切に補完して評価してください。\n英検準1級の基準で詳細な採点・正解・添削・解説を記述してください。`;
 
     try {
       const fullText = await callGeminiStreamHelper(evalPrompt, apiKey.trim(), resultContent);
@@ -848,19 +851,19 @@
 
     if (speakingStep === 1) {
       targetStepName = 'Narration';
-      prompt = `【4コマナレーション課題】\nタイトル: ${speakingData.title}\n\n【ユーザーのナレーション】\n${userInput}\n\n【指示】ナレーションを評価・添削してください。`;
+      prompt = `【4コマナレーション課題】\nタイトル: ${speakingData.title}\n\n【ユーザーのナレーション】\n${userInput}\n\n【指示】※入力はSTTされた英文です。誤変換や単語の揺れは文脈から補完し、ナレーションを評価・添削してください。`;
       speakingStep = 2;
     } else if (speakingStep === 2) {
       targetStepName = 'Question No.1';
-      prompt = `【二次試験 Q1】\n質問: ${speakingData.questions[0]}\n\n【ユーザーの回答】\n${userInput}\n\n【指示】評価・添削してください。`;
+      prompt = `【二次試験 Q1】\n質問: ${speakingData.questions[0]}\n\n【ユーザーの回答】\n${userInput}\n\n【指示】※入力はSTTされた英文です。誤変換は文脈から補完し、評価・添削してください。`;
       speakingStep = 3;
     } else if (speakingStep === 3) {
       targetStepName = 'Question No.2';
-      prompt = `【二次試験 Q2】\n質問: ${speakingData.questions[1]}\n\n【ユーザーの回答】\n${userInput}\n\n【指示】評価・添削してください。`;
+      prompt = `【二次試験 Q2】\n質問: ${speakingData.questions[1]}\n\n【ユーザーの回答】\n${userInput}\n\n【指示】※入力はSTTされた英文です。誤変換は文脈から補完し、評価・添削してください。`;
       speakingStep = 4;
     } else {
       targetStepName = 'Question No.3 & No.4';
-      prompt = `【二次試験 Q3 & Q4】\nQ3: ${speakingData.questions[2]}\nQ4: ${speakingData.questions[3]}\n\n【ユーザーの回答】\n${userInput}\n\n【指示】総合評価してください。`;
+      prompt = `【二次試験 Q3 & Q4】\nQ3: ${speakingData.questions[2]}\nQ4: ${speakingData.questions[3]}\n\n【ユーザーの回答】\n${userInput}\n\n【指示】※入力はSTTされた英文です。誤変換は文脈から補完し、総合評価してください。`;
       speakingStep = 5;
     }
 
