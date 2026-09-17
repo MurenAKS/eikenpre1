@@ -176,9 +176,7 @@
 </div>
 
 <script>
-  // ==========================================
-  // 1. Gemini API モデル設定 (404防止: gemini-1.5-flash)
-  // ==========================================
+  // 安定動作モデル
   const API_MODEL = "gemini-1.5-flash";
 
   const firebaseConfig = {
@@ -349,7 +347,7 @@
   }
 
   async function analyzeLearningProgress() {
-    const apiKey = document.getElementById('apiKey').value;
+    const apiKey = getEffectiveApiKey();
     if (!apiKey) return alert('Gemini API Key を入力してください。');
     if (cachedHistoryDocs.length === 0) return alert('学習履歴がありません。');
 
@@ -373,9 +371,6 @@
   let remainingSeconds = 60;
   let manualStopRequested = false;
 
-  // ==========================================
-  // 4. 音声認識（STT）重複バグ根本解消＆1分間自動維持
-  // ==========================================
   function toggleSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return alert('お使いのブラウザは音声認識に対応していません。');
@@ -510,9 +505,6 @@
     return englishVoices.length > 0 ? englishVoices[0] : voices[0];
   }
 
-  // ==========================================
-  // 5. 音声読み上げ（TTS）記号・誤読除去 ＆ 即時停止
-  // ==========================================
   function stopSpeech() {
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     stopAudioUI();
@@ -571,13 +563,11 @@
     document.getElementById('userInput').value = `${val}`;
   }
 
-  // ==========================================
-  // 2. モード別UI（選択肢表示）の厳密な分離
-  // ==========================================
   function checkAndRenderRadioChoices() {
     const radioArea = document.getElementById('radioChoicesArea');
     radioArea.innerHTML = '';
     
+    // モード①（語彙）の時のみ選択肢UIを表示
     if (currentMode === 'vocab') {
       const container = document.createElement('div');
       container.className = 'radio-choices-container';
@@ -638,9 +628,6 @@
     }
   }
 
-  // ==========================================
-  // 6. ⑦ 4コマナレーション＆Q&Aステップ実行
-  // ==========================================
   let speakingStep = 1;
   let speakingData = {};
 
@@ -705,11 +692,20 @@
     playAudio(() => document.getElementById('audioStatus').classList.add('hidden'));
   }
 
-  // ==========================================
-  // Gemini API 呼び出し (エンドポイント: gemini-1.5-flash)
-  // ==========================================
+  // API Key の安全な取得関数
+  function getEffectiveApiKey(explicitKey) {
+    if (typeof explicitKey === 'string' && explicitKey.trim()) {
+      return explicitKey.trim();
+    }
+    const inputEl = document.getElementById('apiKey');
+    return inputEl && inputEl.value ? inputEl.value.trim() : '';
+  }
+
   async function callGemini(promptText, apiKey) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
+    const key = getEffectiveApiKey(apiKey);
+    if (!key) throw new Error("Gemini API Key が未入力です。");
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:generateContent?key=${encodeURIComponent(key)}`;
     const response = await fetch(url, {
       method: 'POST', 
       headers: { 'Content-Type': 'application/json' },
@@ -718,13 +714,28 @@
         contents: [{ parts: [{ text: promptText }] }] 
       })
     });
-    if (!response.ok) throw new Error(`API Error (${response.status})`);
+    if (!response.ok) {
+      let detail = `API Error (${response.status})`;
+      try {
+        const errJson = await response.json();
+        if (errJson.error && errJson.error.message) detail += `: ${errJson.error.message}`;
+      } catch(e){}
+      throw new Error(detail);
+    }
     const data = await response.json();
     return data.candidates[0].content.parts[0].text;
   }
 
+  // 引数安全化＆404防止ストリーミングヘルパー
   async function callGeminiStreamHelper(promptText, apiKey, targetElement) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:streamGenerateContent?key=${encodeURIComponent(apiKey.trim())}&alt=sse`;
+    const key = getEffectiveApiKey(apiKey);
+    if (!key) throw new Error("Gemini API Key が未入力です。");
+
+    const resolvedElement = (typeof targetElement === 'string') 
+      ? document.getElementById(targetElement) 
+      : targetElement;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:streamGenerateContent?key=${encodeURIComponent(key)}&alt=sse`;
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -733,12 +744,20 @@
         contents: [{ parts: [{ text: promptText }] }]
       })
     });
-    if (!response.ok) throw new Error(`API Error (${response.status})`);
+    if (!response.ok) {
+      let detail = `API Error (${response.status})`;
+      try {
+        const errJson = await response.json();
+        if (errJson.error && errJson.error.message) detail += `: ${errJson.error.message}`;
+      } catch(e){}
+      throw new Error(detail);
+    }
     const reader = response.body.getReader();
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
     let fullText = '';
-    targetElement.innerText = '';
+    if (resolvedElement) resolvedElement.innerText = '';
+
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
@@ -754,7 +773,7 @@
             const textChunk = data.candidates?.[0]?.content?.parts?.[0]?.text;
             if (textChunk) {
               fullText += textChunk;
-              targetElement.innerText = fullText;
+              if (resolvedElement) resolvedElement.innerText = fullText;
             }
           } catch (e) {}
         }
@@ -763,11 +782,8 @@
     return fullText;
   }
 
-  // ==========================================
-  // 3. 出題時：正解・解説の事前出力禁止
-  // ==========================================
   async function generateNewQuestion() {
-    const apiKey = document.getElementById('apiKey').value;
+    const apiKey = getEffectiveApiKey();
     if (!apiKey) return alert('Gemini API Key を入力してください。');
     
     stopSpeech();
@@ -820,11 +836,8 @@
     }
   }
 
-  // ==========================================
-  // 回答送信時：AI採点・正解・詳細解説の出力
-  // ==========================================
   async function submitToGeminiStream() {
-    const apiKey = document.getElementById('apiKey').value;
+    const apiKey = getEffectiveApiKey();
     if (!apiKey) return alert('Gemini API Key を入力してください。');
     
     stopSpeech();
@@ -834,7 +847,7 @@
     if (!userInput) return alert('回答を入力または音声入力してください。');
 
     if (currentMode === 'speaking_full') {
-      await handleSpeakingWorkflow(userInput, apiKey.trim());
+      await handleSpeakingWorkflow(userInput, apiKey);
       return;
     }
 
@@ -849,7 +862,7 @@
     const evalPrompt = `【問題】\n${currentPromptText}\n\n【ユーザーの解答】\n${userInput}\n\n【指示】\n※入力はSTTされた英文です。誤変換や単語の揺れは文脈から適切に補完して評価してください。\n英検準1級の基準で詳細な採点・正解・添削・解説を記述してください。`;
 
     try {
-      const fullText = await callGeminiStreamHelper(evalPrompt, apiKey.trim(), resultContent);
+      const fullText = await callGeminiStreamHelper(evalPrompt, apiKey, resultContent);
       loadingText.classList.add('hidden');
       saveToFirestore(currentMode, currentPromptText, userInput, fullText);
     } catch (error) {
@@ -859,6 +872,7 @@
   }
 
   async function handleSpeakingWorkflow(userInput, apiKey) {
+    const key = getEffectiveApiKey(apiKey);
     const resultArea = document.getElementById('resultArea');
     const loadingText = document.getElementById('loadingText');
     const resultContent = document.getElementById('resultContent');
@@ -889,7 +903,7 @@
     }
 
     try {
-      const fullText = await callGeminiStreamHelper(prompt, apiKey, resultContent);
+      const fullText = await callGeminiStreamHelper(prompt, key, resultContent);
       saveToFirestore('speaking_full', targetStepName, userInput, fullText);
 
       if (speakingStep === 2) {
