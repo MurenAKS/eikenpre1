@@ -177,9 +177,9 @@
 
 <script>
   // ==========================================
-  // API モデル設定
+  // 1. Gemini API モデル設定 (404防止: gemini-1.5-flash)
   // ==========================================
-  const API_MODEL = "gemini-2.5-flash";
+  const API_MODEL = "gemini-1.5-flash";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCk8fSvzuL1-inbDBEXFgrqXdXAbWMlov8",
@@ -373,6 +373,9 @@
   let remainingSeconds = 60;
   let manualStopRequested = false;
 
+  // ==========================================
+  // 4. 音声認識（STT）重複バグ根本解消＆1分間自動維持
+  // ==========================================
   function toggleSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return alert('お使いのブラウザは音声認識に対応していません。');
@@ -507,6 +510,9 @@
     return englishVoices.length > 0 ? englishVoices[0] : voices[0];
   }
 
+  // ==========================================
+  // 5. 音声読み上げ（TTS）記号・誤読除去 ＆ 即時停止
+  // ==========================================
   function stopSpeech() {
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     stopAudioUI();
@@ -530,7 +536,9 @@
     document.getElementById('stopAudioBtn').classList.remove('hidden');
     document.getElementById('audioStatus').classList.remove('hidden');
 
-    let textToProcess = (currentPromptText || '').replace(/No\.\s*(\d+)/gi, 'Number $1').replace(/[#*~_]/g, '');
+    let textToProcess = (currentPromptText || '')
+      .replace(/No\.\s*(\d+)/gi, 'Number $1')
+      .replace(/[#*~_`]/g, '');
     let cleanText = textToProcess.replace(/^\s*[-+]\s+/gm, '').trim();
     const chosenVoice = getBestEnglishVoice(synth);
 
@@ -563,11 +571,13 @@
     document.getElementById('userInput').value = `${val}`;
   }
 
+  // ==========================================
+  // 2. モード別UI（選択肢表示）の厳密な分離
+  // ==========================================
   function checkAndRenderRadioChoices() {
     const radioArea = document.getElementById('radioChoicesArea');
     radioArea.innerHTML = '';
     
-    // 【要件】モード①（語彙）の時のみ選択肢UIを表示
     if (currentMode === 'vocab') {
       const container = document.createElement('div');
       container.className = 'radio-choices-container';
@@ -628,6 +638,9 @@
     }
   }
 
+  // ==========================================
+  // 6. ⑦ 4コマナレーション＆Q&Aステップ実行
+  // ==========================================
   let speakingStep = 1;
   let speakingData = {};
 
@@ -641,10 +654,10 @@
     speakingData = {
       title: "An Office Environmental Initiative (GreenOffice)",
       panels: [
-        { num: 1, desc: "A manager announced a new eco-friendly policy to reduce paper waste.", speech: "We must cut down on paper usage.", emoji1: "👨‍💼", emoji2: "📄", emotion: "😊" },
-        { num: 2, desc: "Employees started using digital documents instead of printing reports.", speech: "This tablet is much more convenient.", emoji1: "👩‍💻", emoji2: "💻", emotion: "😊" },
-        { num: 3, desc: "The company successfully reduced electricity and paper costs.", speech: "Our eco-efforts are paying off!", emoji1: "📈", emoji2: "⚡", emotion: "😃" },
-        { num: 4, desc: "Some employees complained that working digitally caused eye strain.", speech: "My eyes hurt from staring at screens...", emoji1: "💻", emoji2: "👓", emotion: "😫" }
+        { num: 1, desc: "A manager announced a new eco-friendly policy to reduce paper waste.", speech: "We must cut down on paper usage.", emoji1: "👨‍💼", emoji2: "📄" },
+        { num: 2, desc: "Employees started using digital documents instead of printing reports.", speech: "This tablet is much more convenient.", emoji1: "👩‍💻", emoji2: "💻" },
+        { num: 3, desc: "The company successfully reduced electricity and paper costs.", speech: "Our eco-efforts are paying off!", emoji1: "📈", emoji2: "⚡" },
+        { num: 4, desc: "Some employees complained that working digitally caused eye strain.", speech: "My eyes hurt from staring at screens...", emoji1: "💻", emoji2: "👓" }
       ],
       questions: [
         "No. 1: (Based on the 4th panel) Please describe the situation.",
@@ -692,6 +705,9 @@
     playAudio(() => document.getElementById('audioStatus').classList.add('hidden'));
   }
 
+  // ==========================================
+  // Gemini API 呼び出し (エンドポイント: gemini-1.5-flash)
+  // ==========================================
   async function callGemini(promptText, apiKey) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
     const response = await fetch(url, {
@@ -747,6 +763,9 @@
     return fullText;
   }
 
+  // ==========================================
+  // 3. 出題時：正解・解説の事前出力禁止
+  // ==========================================
   async function generateNewQuestion() {
     const apiKey = document.getElementById('apiKey').value;
     if (!apiKey) return alert('Gemini API Key を入力してください。');
@@ -766,7 +785,6 @@
     document.getElementById('audioBtn').classList.add('hidden');
     document.getElementById('audioStatus').classList.add('hidden');
 
-    // 出題時は問題・パッセージ・選択肢のみを出力させ、正解や解説は一切出力させない
     const prompts = {
       'vocab': '英検準1級レベルの短文空所補充問題（語彙）を1問作成してください。必ず問題文と4つの選択肢(1-4)のみを出力し、正解・和訳・解説は絶対に含めないでください。',
       'reading': '英検準1級レベルの長文読解パッセージ1つと設問を作成してください。必ず本文と設問のみを出力し、正解や解説は絶対に含めないでください。',
@@ -802,6 +820,9 @@
     }
   }
 
+  // ==========================================
+  // 回答送信時：AI採点・正解・詳細解説の出力
+  // ==========================================
   async function submitToGeminiStream() {
     const apiKey = document.getElementById('apiKey').value;
     if (!apiKey) return alert('Gemini API Key を入力してください。');
@@ -825,7 +846,7 @@
     loadingText.classList.remove('hidden');
     resultContent.innerText = '';
 
-    const evalPrompt = `【問題】\n${currentPromptText}\n\n【ユーザーの解答】\n${userInput}\n\n【指示】\n※入力はSTT（音声認識）された英文です。誤変換や単語の揺れは文脈から適切に補完して評価してください。\n英検準1級の基準で詳細な採点・正解・添削・解説を記述してください。`;
+    const evalPrompt = `【問題】\n${currentPromptText}\n\n【ユーザーの解答】\n${userInput}\n\n【指示】\n※入力はSTTされた英文です。誤変換や単語の揺れは文脈から適切に補完して評価してください。\n英検準1級の基準で詳細な採点・正解・添削・解説を記述してください。`;
 
     try {
       const fullText = await callGeminiStreamHelper(evalPrompt, apiKey.trim(), resultContent);
